@@ -1,21 +1,11 @@
 "use client";
 
-import { formatUnits } from "viem";
-import { useBalance } from "wagmi";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
-import { CELO_SEPOLIA_CHAIN_ID } from "@/lib/web3/constants";
+import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
-
-function formatCeloBalance(value: bigint, decimals: number): string {
-  const raw = formatUnits(value, decimals);
-  const [whole, fraction = ""] = raw.split(".");
-  if (!fraction || /^0*$/.test(fraction)) return whole;
-  const trimmed = fraction.slice(0, 4).replace(/0+$/, "");
-  return trimmed ? `${whole},${trimmed}` : whole;
-}
 
 type TransferCardProps = {
   wallet: WalletConnectionState;
@@ -63,18 +53,10 @@ export function TransferCard({
   const showRealBalance =
     wallet.isConnected && !wallet.isDemo && Boolean(wallet.address);
 
-  const { data: balance, isLoading: isBalanceLoading } = useBalance({
-    address: wallet.address ?? undefined,
-    chainId: CELO_SEPOLIA_CHAIN_ID,
-    query: { enabled: showRealBalance },
+  const { balances } = useTokenBalances({
+    address: wallet.address,
+    enabled: showRealBalance,
   });
-
-  const balanceLabel = (() => {
-    if (!showRealBalance) return null;
-    if (isBalanceLoading) return "Carregando…";
-    if (!balance) return "—";
-    return `${formatCeloBalance(balance.value, balance.decimals)} CELO`;
-  })();
 
   return (
     <section className="overflow-hidden rounded-3xl border border-celo-white/10 bg-celo-white/[0.04] shadow-2xl shadow-celo-black/60">
@@ -119,9 +101,26 @@ export function TransferCard({
                 <p className="text-xs font-medium text-celo-white/50">
                   Saldo disponível
                 </p>
-                <p className="mt-0.5 text-lg font-bold tabular-nums text-celo-white">
-                  {balanceLabel}
-                </p>
+                <div className="mt-2 space-y-2">
+                  {balances.map((balance) => (
+                    <div
+                      key={balance.token.id}
+                      className="flex items-center justify-between gap-3"
+                    >
+                      <span className="flex items-center gap-2 text-sm font-semibold text-celo-white">
+                        {balance.token.symbol}
+                        {balance.badgeLabel ? (
+                          <span className="rounded-full border border-celo-white/10 bg-celo-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-celo-white/40">
+                            {balance.badgeLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="text-sm font-bold tabular-nums text-celo-white">
+                        {balance.amountLabel}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>
