@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
+
+type DestinationMethod = "phone" | "wallet";
 
 type TransferCardProps = {
   wallet: WalletConnectionState;
@@ -48,8 +51,12 @@ export function TransferCard({
   onSend,
   onResetStatus,
 }: TransferCardProps) {
+  const [destinationMethod, setDestinationMethod] =
+    useState<DestinationMethod>("wallet");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const displayMessage = statusLabel(status, message);
   const isBusy = isSending;
+  const isPhoneDestination = destinationMethod === "phone";
   const showRealBalance =
     wallet.isConnected && !wallet.isDemo && Boolean(wallet.address);
 
@@ -148,6 +155,7 @@ export function TransferCard({
           className="mt-5 flex flex-col gap-4"
           onSubmit={(e) => {
             e.preventDefault();
+            if (isPhoneDestination) return;
             onSend();
           }}
         >
@@ -256,30 +264,104 @@ export function TransferCard({
             hint="Informe o valor que deseja enviar"
           />
 
-          <Input
-            label="Para qual carteira?"
-            type="text"
-            inputMode="text"
-            autoComplete="off"
-            spellCheck={false}
-            placeholder="0x…"
-            value={recipient}
-            onChange={(e) => {
-              onResetStatus();
-              onRecipientChange(e.target.value);
-            }}
+          <fieldset
+            className="flex flex-col gap-2 border-0 p-0"
             disabled={!wallet.isConnected || isBusy}
-            hint="Cole o endereço completo do destinatário."
-          />
+          >
+            <legend className="mb-0 text-sm font-semibold text-celo-white">
+              Como deseja enviar?
+            </legend>
+            <div
+              className="grid grid-cols-2 gap-2"
+              role="radiogroup"
+              aria-label="Como deseja enviar?"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={destinationMethod === "phone"}
+                onClick={() => {
+                  onResetStatus();
+                  setDestinationMethod("phone");
+                }}
+                className={[
+                  "flex min-h-12 items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-sm font-semibold transition-colors",
+                  destinationMethod === "phone"
+                    ? "border-celo-white/20 bg-celo-white/[0.04] text-celo-white/75"
+                    : "border-celo-white/8 bg-celo-white/[0.02] text-celo-white/40 opacity-70",
+                ].join(" ")}
+              >
+                Telefone
+                <span className="rounded-full border border-celo-white/10 bg-celo-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-celo-white/40">
+                  Em breve
+                </span>
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={destinationMethod === "wallet"}
+                onClick={() => {
+                  onResetStatus();
+                  setDestinationMethod("wallet");
+                }}
+                className={[
+                  "flex min-h-12 items-center justify-center rounded-2xl border px-3 py-3 text-sm font-semibold transition-colors",
+                  destinationMethod === "wallet"
+                    ? "border-celo-yellow/45 bg-celo-yellow/10 text-celo-white"
+                    : "border-celo-white/12 bg-celo-white/[0.04] text-celo-white/70",
+                ].join(" ")}
+              >
+                Carteira
+              </button>
+            </div>
+          </fieldset>
+
+          {isPhoneDestination ? (
+            <>
+              <Input
+                label="Número de telefone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="(11) 99999-9999"
+                value={phoneNumber}
+                onChange={(e) => {
+                  onResetStatus();
+                  setPhoneNumber(e.target.value);
+                }}
+                disabled={!wallet.isConnected || isBusy}
+              />
+              <p className="rounded-2xl border border-celo-white/10 bg-celo-white/[0.04] px-4 py-3 text-xs leading-relaxed text-celo-white/50">
+                Em breve será possível enviar usando número de telefone no
+                MiniPay.
+              </p>
+            </>
+          ) : (
+            <Input
+              label="Para qual carteira?"
+              type="text"
+              inputMode="text"
+              autoComplete="off"
+              spellCheck={false}
+              placeholder="0x…"
+              value={recipient}
+              onChange={(e) => {
+                onResetStatus();
+                onRecipientChange(e.target.value);
+              }}
+              disabled={!wallet.isConnected || isBusy}
+              hint="Cole o endereço completo do destinatário."
+            />
+          )}
 
           <Button
             type="submit"
             variant="primary"
             fullWidth
             isLoading={isBusy}
-            disabled={!wallet.isConnected}
+            disabled={!wallet.isConnected || isPhoneDestination}
           >
-            Enviar
+            {isPhoneDestination ? "Disponível em breve" : "Enviar"}
           </Button>
         </form>
 
