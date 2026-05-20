@@ -29,11 +29,11 @@ export function Header({
             className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-celo-yellow to-celo-green font-black text-celo-black shadow-lg shadow-celo-yellow/20"
             aria-hidden
           >
-            C
+            I
           </span>
           <div className="min-w-0">
             <p className="truncate text-base font-bold leading-tight tracking-tight text-celo-white">
-              FlowPay
+              InáPay
             </p>
             <p className="text-[11px] text-celo-white/45">Powered by Celo</p>
           </div>

@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FlowPay",
+  title: "InáPay",
   description:
-    "Demonstração de pagamentos na Celo — envie dinheiro de teste com interface simples e mobile-first.",
+    "Pagamentos digitais rápidos, simples e modernos. Powered by Celo.",
 };
 
 export const viewport: Viewport = {

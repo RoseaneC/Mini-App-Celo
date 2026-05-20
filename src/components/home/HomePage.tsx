@@ -47,11 +47,11 @@ export function HomePage() {
         <div className="space-y-3">
           <p className="inline-flex items-center gap-2 rounded-full border border-celo-yellow/25 bg-celo-yellow/10 px-3 py-1 text-xs font-semibold text-celo-yellow">
             <span className="size-1.5 rounded-full bg-celo-green" aria-hidden />
-            App financeiro de demonstração
+            Pagamentos digitais com energia
           </p>
           <h1 className="text-2xl font-bold leading-tight text-celo-white sm:text-[1.75rem]">
-            Envie e receba em{" "}
-            <span className="text-celo-yellow">segundos</span>
+            <span className="text-celo-yellow">InáPay</span> para enviar e
+            receber em segundos
           </h1>
           <p className="text-sm leading-relaxed text-celo-white/60">
             Conecte-se com seu celular, informe valor e destino —
@@ -80,7 +80,7 @@ export function HomePage() {
         />
 
         <footer className="text-center text-xs text-celo-white/30">
-          FlowPay · ambiente educacional
+          InáPay · Powered by Celo
         </footer>
       </main>
     </div>
