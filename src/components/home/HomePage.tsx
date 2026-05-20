@@ -80,7 +80,7 @@ export function HomePage() {
         />
 
         <footer className="text-center text-xs text-celo-white/30">
-          Celo Pay Demo · ambiente educacional
+          FlowPay · ambiente educacional
         </footer>
       </main>
     </div>

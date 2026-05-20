@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Celo Pay Demo",
+  title: "FlowPay",
   description:
     "Demonstração de pagamentos na Celo — envie dinheiro de teste com interface simples e mobile-first.",
 };

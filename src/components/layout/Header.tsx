@@ -33,9 +33,9 @@ export function Header({
           </span>
           <div className="min-w-0">
             <p className="truncate text-base font-bold leading-tight tracking-tight text-celo-white">
-              Celo Pay Demo
+              FlowPay
             </p>
-            <p className="text-[11px] text-celo-white/45">Rede de teste</p>
+            <p className="text-[11px] text-celo-white/45">Powered by Celo</p>
           </div>
         </div>
 
