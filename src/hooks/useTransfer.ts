@@ -41,9 +41,10 @@ function getServerSnapshot() {
 function parseAmountToUnits(value: string): bigint | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
+  const normalized = trimmed.replace(",", ".");
 
   try {
-    const units = parseUnits(trimmed, CELO_DECIMALS);
+    const units = parseUnits(normalized, CELO_DECIMALS);
     if (units <= BigInt(0)) return null;
     return units;
   } catch {
@@ -204,14 +205,14 @@ export function useTransfer() {
     const trimmedAmount = amount.trim();
     if (!trimmedAmount) {
       setStatus("error");
-      setMessage("Informe um valor para enviar.");
+      setMessage("Informe um valor válido.");
       return;
     }
 
     const amountUnits = parseAmountToUnits(trimmedAmount);
     if (amountUnits === null) {
       setStatus("error");
-      setMessage("Valor inválido. Use um número maior que zero.");
+      setMessage("Informe um valor válido.");
       return;
     }
 
