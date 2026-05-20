@@ -6,19 +6,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
 import { CELO_SEPOLIA_CHAIN_ID } from "@/lib/web3/constants";
+import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
-
-type SendToken = "CELO" | "USDC" | "USDT";
-
-const SEND_TOKENS: {
-  id: SendToken;
-  label: string;
-  available: boolean;
-}[] = [
-  { id: "CELO", label: "CELO", available: true },
-  { id: "USDC", label: "USDC", available: false },
-  { id: "USDT", label: "USDT", available: false },
-];
 
 function formatCeloBalance(value: bigint, decimals: number): string {
   const raw = formatUnits(value, decimals);
@@ -96,8 +85,7 @@ export function TransferCard({
             Enviar
           </h2>
           <p className="text-sm text-celo-white/55">
-            Transfira CELO na Celo Sepolia com a mesma simplicidade de um app
-            de pagamentos.
+            Transferências rápidas, simples e digitais.
           </p>
           <p className="text-[11px] text-celo-white/35">Rede de teste</p>
         </div>
@@ -172,7 +160,7 @@ export function TransferCard({
               isLoading={isBusy}
               onClick={onConnect}
             >
-              {walletAvailable ? "Conectar carteira" : "Conectar (demo)"}
+              {walletAvailable ? "Entrar" : "Conectar (demo)"}
             </Button>
           ) : null}
 
@@ -188,8 +176,8 @@ export function TransferCard({
               role="radiogroup"
               aria-label="Moeda de envio"
             >
-              {SEND_TOKENS.map((token) => {
-                const isSelected = token.id === "CELO";
+              {WEB3_TOKENS.map((token) => {
+                const isSelected = token.id === ACTIVE_SEND_TOKEN_ID;
 
                 if (!token.available) {
                   return (
@@ -199,7 +187,7 @@ export function TransferCard({
                       className="flex items-center justify-between rounded-2xl border border-celo-white/8 bg-celo-white/[0.02] px-4 py-3 opacity-50"
                     >
                       <span className="text-sm font-medium text-celo-white/45">
-                        {token.label}
+                        {token.symbol}
                       </span>
                       <span className="rounded-full border border-celo-white/10 bg-celo-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-celo-white/40">
                         Em breve
@@ -233,7 +221,7 @@ export function TransferCard({
                         ) : null}
                       </span>
                       <span className="text-sm font-semibold text-celo-white">
-                        {token.label}
+                        {token.symbol}
                       </span>
                     </span>
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-celo-green">
@@ -266,7 +254,7 @@ export function TransferCard({
               onAmountChange(e.target.value);
             }}
             disabled={!wallet.isConnected || isBusy}
-            hint="Informe o valor em CELO."
+            hint="Informe o valor que deseja enviar"
           />
 
           <Input

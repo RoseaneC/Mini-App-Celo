@@ -49,11 +49,11 @@ export function HomePage() {
             App financeiro de demonstração
           </p>
           <h1 className="text-2xl font-bold leading-tight text-celo-white sm:text-[1.75rem]">
-            Envie CELO em{" "}
-            <span className="text-celo-yellow">poucos toques</span>
+            Envie e receba em{" "}
+            <span className="text-celo-yellow">segundos</span>
           </h1>
           <p className="text-sm leading-relaxed text-celo-white/60">
-            Conecte sua carteira, escolha a moeda e informe valor e destino —
+            Conecte-se com seu celular, informe valor e destino —
             simples como um Pix.
           </p>
           <p className="text-[11px] text-celo-white/35">Rede de teste</p>
