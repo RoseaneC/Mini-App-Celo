@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { isAddress, parseUnits } from "viem";
 import {
   useAccount,
@@ -20,6 +27,7 @@ import {
 import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
 
 const DEMO_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
+const CONNECTION_TIMEOUT_MS = 25_000;
 
 function hasInjectedProvider(): boolean {
   if (typeof window === "undefined") return false;
@@ -62,6 +70,29 @@ function getErrorMessage(err: unknown): string {
   return "Ocorreu um erro inesperado.";
 }
 
+async function withConnectionTimeout<T>(promise: Promise<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      reject(
+        new Error(
+          "Não foi possível concluir a conexão. Tente novamente pela carteira.",
+        ),
+      );
+    }, CONNECTION_TIMEOUT_MS);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timeoutId);
+        reject(err);
+      },
+    );
+  });
+}
+
 export function useTransfer() {
   const mounted = useSyncExternalStore(
     subscribeNoop,
@@ -77,11 +108,11 @@ export function useTransfer() {
   const [status, setStatus] = useState<TransferStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
+  const miniPayAutoConnectAttempted = useRef(false);
 
-  const { address, isConnected, isConnecting: isAccountConnecting } =
-    useAccount();
+  const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { connectAsync, isPending: isConnectPending } = useConnect();
+  const { connectAsync } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChainAsync } = useSwitchChain();
   const { sendTransactionAsync, isPending: isSendPending } =
@@ -141,13 +172,16 @@ export function useTransfer() {
     }
 
     setStatus("loading");
-    setMessage("Conectando carteira na rede Celo Sepolia...");
+    setMessage(
+      isMiniPay
+        ? "Conectando MiniPay..."
+        : "Conectando carteira na rede Celo Sepolia...",
+    );
 
     try {
-      await connectAsync({
+      await withConnectionTimeout(connectAsync({
         connector: injectedConnector,
-        chainId: CELO_SEPOLIA_CHAIN_ID,
-      });
+      }));
       setDemoConnected(false);
       setStatus("idle");
       setMessage(null);
@@ -155,7 +189,30 @@ export function useTransfer() {
       setStatus("error");
       setMessage(getErrorMessage(err));
     }
-  }, [walletAvailable, injectedConnector, connectAsync]);
+  }, [walletAvailable, injectedConnector, connectAsync, isMiniPay]);
+
+  useEffect(() => {
+    if (
+      !isMiniPay ||
+      !walletAvailable ||
+      isConnected ||
+      demoConnected ||
+      !injectedConnector ||
+      miniPayAutoConnectAttempted.current
+    ) {
+      return;
+    }
+
+    miniPayAutoConnectAttempted.current = true;
+    void connectWallet();
+  }, [
+    isMiniPay,
+    walletAvailable,
+    isConnected,
+    demoConnected,
+    injectedConnector,
+    connectWallet,
+  ]);
 
   const disconnectWallet = useCallback(() => {
     if (isConnected) {
@@ -277,10 +334,7 @@ export function useTransfer() {
     publicClient,
   ]);
 
-  const isConnecting =
-    isConnectPending ||
-    isAccountConnecting ||
-    (status === "loading" && !wallet.isConnected);
+  const isConnecting = status === "loading" && !wallet.isConnected;
 
   const isSending = status === "loading" && wallet.isConnected;
 
