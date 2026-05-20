@@ -26,6 +26,11 @@ function hasInjectedProvider(): boolean {
   return Boolean(window.ethereum);
 }
 
+function hasMiniPayProvider(): boolean {
+  if (typeof window === "undefined") return false;
+  return Boolean(window.ethereum?.isMiniPay);
+}
+
 function subscribeNoop() {
   return () => {};
 }
@@ -64,6 +69,7 @@ export function useTransfer() {
     getServerSnapshot,
   );
   const walletAvailable = mounted && hasInjectedProvider();
+  const isMiniPay = mounted && hasMiniPayProvider();
 
   const [demoConnected, setDemoConnected] = useState(false);
   const [amount, setAmount] = useState("");
@@ -290,6 +296,7 @@ export function useTransfer() {
       : null,
     mounted,
     walletAvailable,
+    isMiniPay,
     isConnecting,
     isSending: isSending || isSendPending,
     setAmount,

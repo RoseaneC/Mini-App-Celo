@@ -15,6 +15,7 @@ export function HomePage() {
     txExplorerUrl,
     mounted,
     walletAvailable,
+    isMiniPay,
     isConnecting,
     isSending,
     setAmount,
@@ -69,6 +70,7 @@ export function HomePage() {
           txExplorerUrl={txExplorerUrl}
           mounted={mounted}
           walletAvailable={walletAvailable}
+          isMiniPay={isMiniPay}
           isSending={isSending}
           onAmountChange={setAmount}
           onRecipientChange={setRecipient}

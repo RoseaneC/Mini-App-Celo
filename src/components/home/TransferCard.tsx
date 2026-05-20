@@ -20,6 +20,7 @@ type TransferCardProps = {
   txExplorerUrl: string | null;
   mounted: boolean;
   walletAvailable: boolean;
+  isMiniPay: boolean;
   isSending: boolean;
   onAmountChange: (value: string) => void;
   onRecipientChange: (value: string) => void;
@@ -44,6 +45,7 @@ export function TransferCard({
   txExplorerUrl,
   mounted,
   walletAvailable,
+  isMiniPay,
   isSending,
   onAmountChange,
   onRecipientChange,
@@ -77,9 +79,14 @@ export function TransferCard({
             Transferências rápidas, simples e digitais.
           </p>
           <p className="text-[11px] text-celo-white/35">Rede de teste</p>
+          {isMiniPay ? (
+            <p className="inline-flex rounded-full border border-celo-green/25 bg-celo-green/10 px-3 py-1 text-xs font-semibold text-celo-green">
+              MiniPay conectado
+            </p>
+          ) : null}
         </div>
 
-        {mounted && !walletAvailable && !wallet.isConnected ? (
+        {mounted && !walletAvailable && !isMiniPay && !wallet.isConnected ? (
           <div
             role="alert"
             className="mb-4 rounded-2xl border border-celo-yellow/30 bg-celo-yellow/10 px-4 py-3 text-sm text-celo-yellow"
@@ -92,11 +99,11 @@ export function TransferCard({
         {wallet.isConnected ? (
           <div className="mb-4 space-y-3">
             <div className="rounded-2xl border border-celo-green/25 bg-celo-green/10 px-4 py-3 text-sm text-celo-green">
-              Carteira conectada:{" "}
+              {isMiniPay ? "MiniPay conectado: " : "Carteira conectada: "}
               <span className="font-mono font-semibold">
                 {wallet.address?.slice(0, 10)}…{wallet.address?.slice(-8)}
               </span>
-              {wallet.isDemo ? (
+              {wallet.isDemo && !isMiniPay ? (
                 <span className="mt-1 block text-xs text-celo-yellow/90">
                   Modo demo — sem extensão Web3
                 </span>
@@ -167,7 +174,7 @@ export function TransferCard({
               isLoading={isBusy}
               onClick={onConnect}
             >
-              {walletAvailable ? "Entrar" : "Conectar (demo)"}
+              {walletAvailable || isMiniPay ? "Entrar" : "Conectar (demo)"}
             </Button>
           ) : null}
 
@@ -373,6 +380,7 @@ export function TransferCard({
         {wallet.isConnected ? (
           <p className="mt-2 text-center text-xs text-celo-white/35">
             {wallet.isDemo
+              && !isMiniPay
               ? "Modo demo — envio simulado. Conecte uma carteira real para transferir de verdade."
               : "Transferência real na rede de teste."}
           </p>
