@@ -6,11 +6,9 @@ type StatusMessageProps = {
 };
 
 const styles: Record<Exclude<TransferStatus, "idle">, string> = {
-  loading:
-    "border-celo-yellow/35 bg-celo-yellow/10 text-celo-yellow",
-  success:
-    "border-celo-green/35 bg-celo-green/10 text-celo-green",
-  error: "border-red-400/35 bg-red-500/10 text-red-200",
+  loading: "border-celo-yellow bg-celo-black text-celo-yellow",
+  success: "border-celo-green bg-celo-green text-celo-black",
+  error: "border-red-300 bg-red-300 text-celo-black",
 };
 
 export function StatusMessage({ status, message }: StatusMessageProps) {
@@ -20,14 +18,11 @@ export function StatusMessage({ status, message }: StatusMessageProps) {
     <div
       role="status"
       aria-live="polite"
-      className={`rounded-2xl border px-4 py-3.5 text-sm font-medium ${styles[status]}`}
+      className={`border-2 px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed ${styles[status]}`}
     >
       {status === "loading" ? (
-        <span className="flex items-center gap-2.5">
-          <span
-            className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
-            aria-hidden
-          />
+        <span className="flex items-center gap-2">
+          <span className="size-2 animate-pulse bg-current" aria-hidden />
           {message}
         </span>
       ) : (

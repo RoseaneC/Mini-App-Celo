@@ -10,21 +10,28 @@ export function Input({ label, hint, id, className = "", ...props }: InputProps)
 
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={inputId} className="text-sm font-semibold text-celo-white">
+      <label
+        htmlFor={inputId}
+        className="font-mono text-[11px] font-bold uppercase text-warm-gray"
+      >
         {label}
       </label>
       <input
         id={inputId}
         className={[
-          "min-h-12 w-full rounded-2xl border border-celo-white/12 bg-celo-white/[0.06] px-4 py-3 text-base text-celo-white",
-          "placeholder:text-celo-white/35",
-          "focus:border-celo-yellow/50 focus:bg-celo-white/[0.08] focus:outline-none focus:ring-2 focus:ring-celo-yellow/25",
+          "min-h-14 w-full border-0 border-b-2 border-celo-white bg-transparent px-0 py-3 text-xl font-black text-celo-white",
+          "placeholder:text-warm-gray/55",
+          "focus:border-celo-yellow focus:bg-celo-yellow focus:px-3 focus:text-celo-black focus:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50",
           className,
         ].join(" ")}
         {...props}
       />
-      {hint ? <p className="text-xs leading-relaxed text-celo-white/45">{hint}</p> : null}
+      {hint ? (
+        <p className="font-mono text-[11px] leading-relaxed text-warm-gray">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

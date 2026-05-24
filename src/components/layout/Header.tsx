@@ -9,7 +9,7 @@ type HeaderProps = {
 };
 
 function shortenAddress(address: string): string {
-  return `${address.slice(0, 6)}…${address.slice(-4)}`;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 export function Header({
@@ -22,39 +22,32 @@ export function Header({
   connectDisabled = false,
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-10 border-b border-celo-white/10 bg-celo-black/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-md items-center justify-between gap-3 px-4 py-3.5">
-        <div className="flex min-w-0 items-center gap-3">
-          <span
-            className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-celo-yellow to-celo-green font-black text-celo-black shadow-lg shadow-celo-yellow/20"
-            aria-hidden
-          >
-            I
+    <header className="sticky top-0 z-20 border-b-2 border-celo-white bg-celo-black">
+      <div className="mx-auto grid max-w-[480px] grid-cols-[1fr_auto] items-stretch px-4">
+        <div className="flex min-w-0 items-center gap-3 border-r-2 border-celo-white py-3 pr-3">
+          <span className="font-mono text-[10px] font-bold uppercase text-celo-yellow">
+            Celo Sepolia
           </span>
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold leading-tight tracking-tight text-celo-white">
-              InáPay
-            </p>
-            <p className="text-[11px] text-celo-white/45">Powered by Celo</p>
-          </div>
+          <div className="h-5 w-px bg-celo-white/35" aria-hidden />
+          <p className="truncate text-lg font-black uppercase leading-none text-celo-white">
+            InáPay
+          </p>
         </div>
 
         {isConnected && address ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="hidden flex-col items-end sm:flex">
-              <span className="text-xs font-semibold text-celo-green">
+          <div className="flex shrink-0 items-center gap-3 py-2 pl-3">
+            <div className="flex flex-col items-end">
+              <span className="font-mono text-[11px] font-bold text-celo-green">
                 {shortenAddress(address)}
               </span>
-              {isDemo ? (
-                <span className="text-[10px] text-celo-yellow">modo demo</span>
-              ) : (
-                <span className="text-[10px] text-celo-white/50">conectada</span>
-              )}
+              <span className="font-mono text-[9px] uppercase text-warm-gray">
+                {isDemo ? "demo" : "online"}
+              </span>
             </div>
             <button
               type="button"
               onClick={onDisconnect}
-              className="rounded-xl border border-celo-white/15 bg-celo-white/5 px-3 py-2 text-xs font-semibold text-celo-white transition hover:border-celo-yellow/50 hover:bg-celo-yellow/10 hover:text-celo-yellow"
+              className="border-2 border-celo-white bg-celo-black px-3 py-2 text-xs font-black uppercase text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
             >
               Sair
             </button>
@@ -64,9 +57,9 @@ export function Header({
             type="button"
             onClick={onConnect}
             disabled={isConnecting || connectDisabled}
-            className="shrink-0 rounded-xl bg-celo-yellow px-4 py-2.5 text-xs font-bold text-celo-black shadow-md shadow-celo-yellow/25 transition hover:brightness-105 disabled:opacity-50"
+            className="my-2 ml-3 shrink-0 border-2 border-celo-yellow bg-celo-yellow px-4 py-2 text-xs font-black uppercase text-celo-black transition-colors hover:bg-celo-black hover:text-celo-yellow disabled:opacity-50"
           >
-            {isConnecting ? "…" : "Conectar"}
+            {isConnecting ? "..." : "Conectar"}
           </button>
         )}
       </div>

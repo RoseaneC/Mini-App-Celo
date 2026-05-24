@@ -10,12 +10,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "bg-celo-green text-celo-black shadow-lg shadow-celo-green/20 hover:bg-celo-green/95 focus-visible:ring-celo-yellow",
+    "border-2 border-celo-yellow bg-celo-yellow text-celo-black hover:bg-celo-black hover:text-celo-yellow focus-visible:ring-editorial-lilac",
   secondary:
-    "bg-celo-yellow text-celo-black shadow-md shadow-celo-yellow/20 hover:brightness-105 focus-visible:ring-celo-green",
+    "border-2 border-celo-white bg-celo-white text-celo-black hover:bg-celo-black hover:text-celo-white focus-visible:ring-celo-yellow",
   outline:
-    "border border-celo-white/20 bg-celo-white/5 text-celo-white hover:border-celo-yellow/40 hover:bg-celo-yellow/5 hover:text-celo-yellow",
-  ghost: "bg-transparent text-celo-white/80 hover:bg-celo-white/5 hover:text-celo-white",
+    "border-2 border-celo-white bg-transparent text-celo-white hover:border-celo-yellow hover:bg-celo-yellow hover:text-celo-black",
+  ghost:
+    "border-2 border-transparent bg-transparent text-celo-white hover:border-celo-white hover:bg-celo-white hover:text-celo-black",
 };
 
 export function Button({
@@ -32,7 +33,7 @@ export function Button({
       type="button"
       disabled={disabled || isLoading}
       className={[
-        "inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-bold tracking-tight transition-all",
+        "inline-flex min-h-14 items-center justify-center gap-3 px-5 py-3 text-sm font-black uppercase transition-colors duration-200",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-celo-black",
         "disabled:cursor-not-allowed disabled:opacity-50",
         fullWidth && "w-full",
@@ -46,7 +47,7 @@ export function Button({
       {isLoading ? (
         <>
           <span
-            className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+            className="size-3 animate-pulse bg-current"
             aria-hidden
           />
           <span>Aguarde...</span>

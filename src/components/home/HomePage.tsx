@@ -4,6 +4,25 @@ import { Header } from "@/components/layout/Header";
 import { TransferCard } from "@/components/home/TransferCard";
 import { useTransfer } from "@/hooks/useTransfer";
 
+function ManifestoStrip() {
+  return (
+    <section className="border-y-2 border-celo-white py-5">
+      <div className="grid grid-cols-[1fr_auto] gap-4">
+        <p className="text-4xl font-black uppercase leading-none text-celo-white">
+          stablecoins
+          <span className="block text-editorial-lilac">para pessoas</span>
+          <span className="block text-celo-yellow">reais.</span>
+        </p>
+        <div className="flex flex-col justify-between border-l-2 border-celo-white pl-3 font-mono text-[10px] font-bold uppercase text-warm-gray">
+          <span>CELO</span>
+          <span>USDC</span>
+          <span>USDT exp</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function HomePage() {
   const {
     wallet,
@@ -29,12 +48,9 @@ export function HomePage() {
   } = useTransfer();
 
   return (
-    <div className="flex min-h-dvh flex-col bg-celo-black">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
-        <div className="absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-celo-yellow/15 blur-3xl" />
-        <div className="absolute top-1/3 -right-16 h-56 w-56 rounded-full bg-celo-green/12 blur-3xl" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-celo-black to-transparent" />
-      </div>
+    <div className="relative min-h-dvh overflow-hidden bg-celo-black text-celo-white">
+      <div className="editorial-texture pointer-events-none fixed inset-0 opacity-65" aria-hidden />
+      <div className="editorial-noise pointer-events-none fixed inset-0 opacity-45" aria-hidden />
 
       <Header
         isConnected={wallet.isConnected}
@@ -45,22 +61,39 @@ export function HomePage() {
         isConnecting={isConnecting}
       />
 
-      <main className="relative mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-4 py-6 pb-10">
-        <div className="space-y-3">
-          <p className="inline-flex items-center gap-2 rounded-full border border-celo-yellow/25 bg-celo-yellow/10 px-3 py-1 text-xs font-semibold text-celo-yellow">
-            <span className="size-1.5 rounded-full bg-celo-green" aria-hidden />
-            Pagamentos digitais com energia
-          </p>
-          <h1 className="text-2xl font-bold leading-tight text-celo-white sm:text-[1.75rem]">
-            <span className="text-celo-yellow">InáPay</span> para enviar e
-            receber em segundos
+      <main className="relative mx-auto flex w-full max-w-[480px] flex-col px-4 pb-10">
+        <section className="pt-7">
+          <div className="grid grid-cols-[1fr_auto] items-start gap-4 border-b-2 border-celo-white pb-4">
+            <p className="font-mono text-[11px] font-bold uppercase leading-relaxed text-warm-gray">
+              Mini app Web3
+              <span className="block text-celo-yellow">Celo Sepolia</span>
+            </p>
+            <p className="max-w-28 text-right font-mono text-[10px] font-bold uppercase leading-relaxed text-celo-white">
+              LATAM digital money
+            </p>
+          </div>
+
+          <h1 className="mt-7 text-6xl font-black uppercase leading-[0.84] text-celo-white">
+            dinheiro
+            <span className="block text-celo-yellow">em</span>
+            <span className="block italic text-editorial-lilac">
+              movimento.
+            </span>
           </h1>
-          <p className="text-sm leading-relaxed text-celo-white/60">
-            Conecte-se com seu celular, informe valor e destino —
-            simples como um Pix.
-          </p>
-          <p className="text-[11px] text-celo-white/35">Rede de teste</p>
-        </div>
+
+          <div className="mt-6 overflow-hidden border-y-2 border-celo-yellow bg-celo-yellow py-2 text-celo-black">
+            <div className="motion-ticker flex w-max gap-6 font-mono text-[11px] font-black uppercase">
+              <span>envie.</span>
+              <span>receba.</span>
+              <span>instantaneamente.</span>
+              <span>stablecoins sem teatro.</span>
+              <span>envie.</span>
+              <span>receba.</span>
+              <span>instantaneamente.</span>
+              <span>stablecoins sem teatro.</span>
+            </div>
+          </div>
+        </section>
 
         <TransferCard
           wallet={wallet}
@@ -83,8 +116,11 @@ export function HomePage() {
           onResetStatus={resetStatus}
         />
 
-        <footer className="text-center text-xs text-celo-white/30">
-          InáPay · Powered by Celo
+        <ManifestoStrip />
+
+        <footer className="grid grid-cols-[1fr_auto] items-end gap-4 py-5 font-mono text-[10px] font-bold uppercase text-warm-gray">
+          <span>InáPay / powered by Celo</span>
+          <span className="text-right text-celo-white">mobile-first MVP</span>
         </footer>
       </main>
     </div>

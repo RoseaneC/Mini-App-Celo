@@ -1,197 +1,148 @@
 # InáPay
 
-**Powered by Celo**
+InáPay é um Mini App construído na Celo Sepolia focado em pagamentos digitais rápidos, simples e acessíveis usando CELO e stablecoins.
 
-InáPay is a mobile-first Web3 payment application inspired by the usability of Pix and MiniPay. The app enables fast digital payments using the Celo blockchain, with a simple interface designed for mobile wallets, MiniPay contexts, and future stablecoin payments.
-
-## Visão geral
-
-InáPay is currently focused on a clear payment flow: connect a wallet, enter an amount, choose a destination wallet, and send funds on Celo Sepolia.
-
-The current version already supports real CELO transfers on testnet. It also includes a demo mode for browsers without an injected wallet, allowing users and reviewers to explore the interface without needing MetaMask, MiniPay, or test funds.
+O projeto nasceu como um MVP inspirado na simplicidade de experiências como Pix e MiniPay: conectar uma carteira, escolher uma moeda, informar valor e destino, e acompanhar a transação com hash/comprovante na rede.
 
 ## Funcionalidades atuais
 
-- Real CELO transfers on Celo Sepolia.
-- Wallet connection through injected providers such as MetaMask.
-- Automatic MiniPay environment detection through the injected provider.
-- Demo mode when no wallet provider is available.
-- Mobile-first payment interface.
-- Brazilian decimal input support, including values such as `0,01`.
-- Visual multi-token structure for CELO, USDC, and USDT.
-- Token balance area prepared for future ERC20 balance reads.
-- Future phone-based payment entry point shown as a disabled roadmap feature.
+- Envio real de CELO na Celo Sepolia.
+- Envio real de USDC via ERC20 `transfer`.
+- Suporte experimental a USDT via ERC20.
+- Detecção automática de ambiente MiniPay.
+- Compatível com MetaMask mobile e desktop por provedores injetados.
+- Modo demo sem wallet para navegação e demonstração da interface.
+- Transferências com comprovante/hash no explorer da Celo Sepolia.
+- Arquitetura multi-token com CELO, USDC e USDT.
+- Leitura de saldo real para CELO e tokens ERC20 habilitados.
+- Entrada por telefone exibida apenas como funcionalidade futura.
 
-## Tecnologias utilizadas
+## Stack
 
 - Next.js
 - React
 - TypeScript
-- Tailwind CSS
-- wagmi
-- viem
+- Wagmi
+- Viem
+- TailwindCSS
 - TanStack React Query
-- Vercel
 - Celo Sepolia
+- ERC20
+- Vercel
 
-## Arquitetura
+## Tokens suportados
 
-The project is organized around a small set of focused layers:
+| Token | Status |
+|---|---|
+| CELO | Funcional |
+| USDC | Funcional |
+| USDT | Experimental |
 
-- `src/app`: Next.js App Router entry points and global layout.
-- `src/components`: UI, layout, and home/payment components.
-- `src/hooks`: client-side payment and balance hooks.
-- `src/lib/web3`: Celo network configuration, token metadata, and Web3 constants.
-- `src/providers`: global Web3 and React Query providers.
-- `src/types`: shared TypeScript types.
-
-The current transaction flow is intentionally conservative: CELO transfers use the existing native transaction path, while ERC20 token support is being prepared separately and is not enabled yet.
-
-## Rede utilizada (Celo Sepolia)
-
-The app currently uses **Celo Sepolia** as its active blockchain network.
-
-Current network behavior:
-
-- Native CELO transfers are enabled on Celo Sepolia.
-- Transaction receipts link to the Celo Sepolia block explorer.
-- Network switching is handled during the send flow when needed.
-- Mainnet is not enabled in the current version.
-
-## MiniPay support
-
-InáPay includes initial MiniPay support through environment detection.
-
-Current MiniPay-related behavior:
-
-- Detects MiniPay when the injected provider exposes the MiniPay flag.
-- Shows MiniPay-specific connection messaging.
-- Keeps MetaMask desktop and MetaMask mobile connection flows available.
-- Keeps demo mode available when no wallet is detected.
-
-The app does not yet implement MiniPay-specific SDK features, ODIS, SocialConnect, or phone lookup.
-
-## Stablecoins roadmap (USDC, USDT, USDm)
-
-Stablecoin support is part of the product roadmap.
-
-Current status:
-
-- CELO is active and functional.
-- USDC and USDT are represented in the token architecture and UI as upcoming assets.
-- ERC20 sending is not enabled yet.
-- ERC20 `balanceOf` reads are prepared architecturally but not activated for production use.
-
-Planned stablecoin steps:
-
-1. Enable real USDC balance reads.
-2. Add safe ERC20 transfer support for USDC.
-3. Validate fee behavior in MiniPay and mobile wallets.
-4. Extend the same pattern to USDT.
-5. Evaluate USDm support based on ecosystem requirements and availability.
-
-## SocialConnect / telefone roadmap
-
-InáPay includes a visual entry point for phone-based payments, but phone lookup is not active yet.
-
-Current status:
-
-- Wallet-address payments are active.
-- Phone payments are visible as a future feature.
-- The phone input is disabled for real sending and clearly marked as upcoming.
-
-Planned SocialConnect path:
-
-1. Normalize phone numbers safely.
-2. Integrate SocialConnect / ODIS lookup.
-3. Resolve phone numbers to wallet addresses.
-4. Add explicit user confirmation before sending.
-5. Add privacy, quota, and error-handling safeguards before production release.
+USDT está habilitado em caráter experimental na Celo Sepolia. O contrato, `decimals` e bytecode foram validados on-chain, mas o envio ponta a ponta ainda deve ser validado com fundos reais de teste antes de ser tratado como funcional no mesmo nível de CELO e USDC.
 
 ## Como rodar localmente
 
-Install dependencies:
+Instale as dependências:
 
 ```bash
 npm install
 ```
 
-Run the development server:
+Rode o servidor de desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-Open:
+Acesse:
 
 ```bash
 http://localhost:3000
 ```
 
-Run lint:
+Gere o build de produção:
+
+```bash
+npm run build
+```
+
+Opcionalmente, rode o lint:
 
 ```bash
 npm run lint
 ```
 
-## Deploy Vercel
+## Deploy
 
-The project is designed to run on Vercel with the standard Next.js deployment flow.
+Deploy previsto via Vercel.
 
-Recommended deployment flow:
-
-1. Push the project to a Git repository.
-2. Import the repository into Vercel.
-3. Use the default Next.js build settings.
-4. Deploy to a preview environment first.
-5. Validate wallet connection, MiniPay detection, demo mode, and CELO transfer behavior.
-6. Promote to production after testnet validation.
-
-## Estrutura do projeto
+Link do Vercel:
 
 ```text
-src/
-  app/
-    layout.tsx
-    page.tsx
-    globals.css
-  components/
-    home/
-    layout/
-    ui/
-  hooks/
-    useTransfer.ts
-    useTokenBalances.ts
-  lib/
-    web3/
-      config.ts
-      constants.ts
-      tokens.ts
-      types.ts
-  providers/
-    Web3Provider.tsx
-  types/
-    transfer.ts
-    window.d.ts
+Adicionar link aqui
 ```
+
+## Arquitetura
+
+O projeto está organizado em camadas pequenas e diretas:
+
+- `src/app`: entradas do Next.js App Router e layout global.
+- `src/components`: componentes de UI, layout e fluxo de pagamento.
+- `src/hooks`: hooks de conexão, envio e leitura de saldos.
+- `src/lib/web3`: configuração da rede Celo, metadata de tokens e constantes Web3.
+- `src/providers`: providers globais de Wagmi e React Query.
+- `src/types`: tipos compartilhados da aplicação.
+
+O fluxo de CELO usa transação nativa na Celo Sepolia. Os fluxos de USDC e USDT usam chamadas ERC20 `transfer(address,uint256)` com `decimals` específicos de cada token.
+
+## Rede utilizada
+
+A rede ativa do app é **Celo Sepolia**.
+
+Comportamento atual:
+
+- CELO é enviado como moeda nativa da rede.
+- USDC e USDT usam contratos ERC20 na Celo Sepolia.
+- O app tenta alternar para Celo Sepolia quando necessário.
+- Os comprovantes apontam para o explorer da Celo Sepolia.
+- Mainnet não está habilitada nesta versão.
+
+## MiniPay
+
+InáPay inclui suporte inicial ao contexto MiniPay por detecção do provider injetado.
+
+Estado atual:
+
+- Detecta MiniPay quando o provider expõe a flag correspondente.
+- Exibe mensagens de conexão específicas para MiniPay.
+- Mantém compatibilidade com MetaMask desktop e mobile.
+- Mantém modo demo quando nenhuma wallet é detectada.
+
+O app ainda não implementa SDKs específicos do MiniPay, ODIS, SocialConnect ou resolução de telefone para carteira.
 
 ## Screenshots
 
-Placeholder for product screenshots:
+![Tela inicial](./docs/screenshots/home-placeholder.png)
 
-- Home / payment flow
-- Wallet connected state
-- MiniPay detected state
-- Demo mode state
+![Carteira conectada](./docs/screenshots/wallet-connected-placeholder.png)
 
-## Roadmap futuro
+![Seleção de token](./docs/screenshots/token-selection-placeholder.png)
 
-- Improve MiniPay-specific mobile experience.
-- Enable USDC balance reads.
-- Implement safe USDC transfers through ERC20 contracts.
-- Add USDT after USDC validation.
-- Evaluate USDm support.
-- Integrate SocialConnect / ODIS for phone-to-wallet resolution.
-- Add stronger transaction status states and retry guidance.
-- Prepare a mainnet readiness checklist.
-- Expand product analytics and error monitoring.
+![Comprovante de transação](./docs/screenshots/transaction-receipt-placeholder.png)
+
+## Roadmap
+
+- SocialConnect / telefone.
+- USDm.
+- Fee abstraction.
+- Integração MiniPay avançada.
+- QR Code payments.
+- Histórico de transações.
+- Estados de transação mais detalhados.
+- Checklist de prontidão para mainnet.
+
+## Sobre o projeto
+
+O objetivo do InáPay é tornar pagamentos digitais mais simples e acessíveis usando a infraestrutura da Celo e stablecoins. O MVP prioriza uma experiência curta e compreensível: conectar carteira, escolher ativo, enviar para outro endereço e receber um comprovante verificável on-chain.
+
+Nesta fase, o foco está em pagamentos por endereço de carteira na Celo Sepolia. Pagamentos por telefone, SocialConnect, ODIS, USDm, QR Code e histórico de transações fazem parte do roadmap e ainda não estão ativos no produto.

@@ -34,8 +34,13 @@ type TransferCardProps = {
 
 function statusLabel(status: TransferStatus, message: string | null): string | null {
   if (message) return message;
-  if (status === "loading") return "Processando…";
+  if (status === "loading") return "Processando...";
   return null;
+}
+
+function tokenStateLabel(tokenId: TokenId, selected: boolean): string {
+  if (tokenId === "USDT") return selected ? "Exp ativo" : "Experimental";
+  return selected ? "Selecionado" : "Funcional";
 }
 
 export function TransferCard({
@@ -76,68 +81,68 @@ export function TransferCard({
   });
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-celo-white/10 bg-celo-white/[0.04] shadow-2xl shadow-celo-black/60">
-      <div className="h-1 bg-gradient-to-r from-celo-yellow via-celo-green to-celo-yellow" aria-hidden />
-      <div className="p-5 sm:p-6">
-        <div className="mb-5 space-y-1">
-          <h2 className="text-xl font-bold tracking-tight text-celo-white">
-            Enviar
-          </h2>
-          <p className="text-sm text-celo-white/55">
-            Transferências rápidas, simples e digitais.
+    <section className="my-8 border-2 border-celo-white bg-celo-black">
+      <div className="grid grid-cols-[1fr_auto] border-b-2 border-celo-white">
+        <div className="bg-celo-white px-4 py-3 text-celo-black">
+          <h2 className="text-3xl font-black uppercase leading-none">Enviar</h2>
+        </div>
+        <div className="flex items-center border-l-2 border-celo-white px-3 font-mono text-[10px] font-bold uppercase text-celo-yellow">
+          02/pay
+        </div>
+      </div>
+
+      <div className="space-y-5 p-4">
+        <div className="grid grid-cols-[1fr_auto] gap-3 border-b border-celo-white/25 pb-4">
+          <p className="text-xl font-black uppercase leading-none text-celo-white">
+            envie.
+            <span className="block text-editorial-lilac">receba.</span>
           </p>
-          <p className="text-[11px] text-celo-white/35">Rede de teste</p>
-          {isMiniPay ? (
-            <p className="inline-flex rounded-full border border-celo-green/25 bg-celo-green/10 px-3 py-1 text-xs font-semibold text-celo-green">
-              MiniPay conectado
-            </p>
-          ) : null}
+          <div className="text-right font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+            <span className="block text-celo-yellow">testnet</span>
+            <span>{isMiniPay ? "MiniPay" : "wallet"}</span>
+          </div>
         </div>
 
         {mounted && !walletAvailable && !isMiniPay && !wallet.isConnected ? (
           <div
             role="alert"
-            className="mb-4 rounded-2xl border border-celo-yellow/30 bg-celo-yellow/10 px-4 py-3 text-sm text-celo-yellow"
+            className="border-2 border-editorial-lilac bg-editorial-lilac px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed text-celo-black"
           >
-            Não encontramos uma carteira neste navegador. Toque em
-            &quot;Conectar&quot; para experimentar no modo demo.
+            Sem wallet detectada. Entre no modo demo para explorar a interface.
           </div>
         ) : null}
 
         {wallet.isConnected ? (
-          <div className="mb-4 space-y-3">
-            <div className="rounded-2xl border border-celo-green/25 bg-celo-green/10 px-4 py-3 text-sm text-celo-green">
-              {isMiniPay ? "MiniPay conectado: " : "Carteira conectada: "}
-              <span className="font-mono font-semibold">
-                {wallet.address?.slice(0, 10)}…{wallet.address?.slice(-8)}
+          <div className="border-y border-celo-white/25 py-3">
+            <div className="flex items-start justify-between gap-4">
+              <span className="font-mono text-[10px] font-bold uppercase text-warm-gray">
+                {isMiniPay ? "MiniPay" : "Carteira"}
               </span>
-              {wallet.isDemo && !isMiniPay ? (
-                <span className="mt-1 block text-xs text-celo-yellow/90">
-                  Modo demo — sem extensão Web3
-                </span>
-              ) : null}
+              <span className="break-all text-right font-mono text-[11px] font-bold text-celo-green">
+                {wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}
+              </span>
             </div>
+            {wallet.isDemo && !isMiniPay ? (
+              <p className="mt-2 font-mono text-[10px] font-bold uppercase text-celo-yellow">
+                modo demo / envio simulado
+              </p>
+            ) : null}
 
             {showRealBalance ? (
-              <div className="rounded-2xl border border-celo-white/10 bg-celo-white/[0.04] px-4 py-3">
-                <p className="text-xs font-medium text-celo-white/50">
-                  Saldo disponível
+              <div className="mt-4 border-t border-celo-white/25">
+                <p className="py-2 font-mono text-[10px] font-bold uppercase text-warm-gray">
+                  Saldos
                 </p>
-                <div className="mt-2 space-y-2">
+                <div className="divide-y divide-celo-white/20 border-y border-celo-white/20">
                   {balances.map((balance) => (
                     <div
                       key={balance.token.id}
-                      className="flex items-center justify-between gap-3"
+                      className="grid grid-cols-[auto_1fr] items-center gap-3 py-2"
                     >
-                      <span className="flex items-center gap-2 text-sm font-semibold text-celo-white">
+                      <span className="font-mono text-xs font-black uppercase text-celo-white">
                         {balance.token.symbol}
-                        {balance.badgeLabel ? (
-                          <span className="rounded-full border border-celo-white/10 bg-celo-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-celo-white/40">
-                            {balance.badgeLabel}
-                          </span>
-                        ) : null}
                       </span>
-                      <span className="text-sm font-bold tabular-nums text-celo-white">
+                      <span className="min-w-0 truncate text-right font-mono text-xs font-bold text-celo-white">
                         {balance.amountLabel}
                       </span>
                     </div>
@@ -151,23 +156,23 @@ export function TransferCard({
         <StatusMessage status={status} message={displayMessage} />
 
         {txHash && txExplorerUrl ? (
-          <p className="mt-3 break-all text-xs text-celo-white/60">
-            <span className="font-medium text-celo-white/80">
-              Comprovante da transação:{" "}
-            </span>
+          <div className="border-2 border-celo-green bg-celo-green px-3 py-3 text-celo-black">
+            <p className="font-mono text-[10px] font-black uppercase">
+              comprovante on-chain
+            </p>
             <a
               href={txExplorerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-celo-green underline-offset-2 hover:underline"
+              className="mt-2 block break-all font-mono text-[11px] font-bold underline"
             >
               {txHash}
             </a>
-          </p>
+          </div>
         ) : null}
 
         <form
-          className="mt-5 flex flex-col gap-4"
+          className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
             if (isPhoneDestination) return;
@@ -182,37 +187,43 @@ export function TransferCard({
               isLoading={isBusy}
               onClick={onConnect}
             >
-              {walletAvailable || isMiniPay ? "Entrar" : "Conectar (demo)"}
+              {walletAvailable || isMiniPay ? "Entrar" : "Conectar demo"}
             </Button>
           ) : null}
 
           <fieldset
-            className="flex flex-col gap-2 border-0 p-0"
+            className="border-0 p-0"
             disabled={!wallet.isConnected || isBusy}
           >
-            <legend className="mb-0 text-sm font-semibold text-celo-white">
-              Moeda de envio
+            <legend className="mb-2 font-mono text-[11px] font-bold uppercase text-warm-gray">
+              01 / moeda de envio
             </legend>
             <div
-              className="flex flex-col gap-2"
+              className="grid grid-cols-3 border-2 border-celo-white"
               role="radiogroup"
               aria-label="Moeda de envio"
             >
-              {WEB3_TOKENS.map((token) => {
+              {WEB3_TOKENS.map((token, index) => {
                 const isSelected = token.id === selectedTokenId;
+                const isLast = index === WEB3_TOKENS.length - 1;
 
                 if (!token.available) {
                   return (
                     <div
                       key={token.id}
                       aria-disabled="true"
-                      className="flex items-center justify-between rounded-2xl border border-celo-white/8 bg-celo-white/[0.02] px-4 py-3 opacity-50"
+                      className={[
+                        "min-h-20 px-2 py-3 opacity-45",
+                        !isLast && "border-r-2 border-celo-white",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
-                      <span className="text-sm font-medium text-celo-white/45">
+                      <span className="block text-lg font-black uppercase text-celo-white">
                         {token.symbol}
                       </span>
-                      <span className="rounded-full border border-celo-white/10 bg-celo-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-celo-white/40">
-                        Em breve
+                      <span className="font-mono text-[9px] font-bold uppercase text-warm-gray">
+                        em breve
                       </span>
                     </div>
                   );
@@ -222,32 +233,20 @@ export function TransferCard({
                   <label
                     key={token.id}
                     className={[
-                      "flex cursor-pointer items-center justify-between rounded-2xl border px-4 py-3 transition-colors",
+                      "flex min-h-20 cursor-pointer flex-col justify-between px-2 py-3 transition-colors",
+                      !isLast && "border-r-2 border-celo-white",
                       isSelected
-                        ? "border-celo-yellow/45 bg-celo-yellow/10"
-                        : "border-celo-white/12 bg-celo-white/[0.04]",
-                    ].join(" ")}
+                        ? "bg-celo-yellow text-celo-black"
+                        : "bg-celo-black text-celo-white hover:bg-celo-white hover:text-celo-black",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                   >
-                    <span className="flex items-center gap-2.5">
-                      <span
-                        className={[
-                          "flex size-4 items-center justify-center rounded-full border-2",
-                          isSelected
-                            ? "border-celo-yellow bg-celo-yellow"
-                            : "border-celo-white/30",
-                        ].join(" ")}
-                        aria-hidden
-                      >
-                        {isSelected ? (
-                          <span className="size-1.5 rounded-full bg-celo-black" />
-                        ) : null}
-                      </span>
-                      <span className="text-sm font-semibold text-celo-white">
-                        {token.symbol}
-                      </span>
+                    <span className="text-lg font-black uppercase leading-none">
+                      {token.symbol}
                     </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-celo-green">
-                      {isSelected ? "Selecionado" : "Disponível"}
+                    <span className="font-mono text-[9px] font-bold uppercase">
+                      {tokenStateLabel(token.id, isSelected)}
                     </span>
                     <input
                       type="radio"
@@ -267,7 +266,7 @@ export function TransferCard({
           </fieldset>
 
           <Input
-            label="Quanto deseja enviar?"
+            label="02 / valor"
             type="number"
             inputMode="decimal"
             min="0"
@@ -279,41 +278,21 @@ export function TransferCard({
               onAmountChange(e.target.value);
             }}
             disabled={!wallet.isConnected || isBusy}
-            hint={`Informe o valor em ${selectedToken.symbol}`}
+            hint={`ativo selecionado: ${selectedToken.symbol}`}
           />
 
           <fieldset
-            className="flex flex-col gap-2 border-0 p-0"
+            className="border-0 p-0"
             disabled={!wallet.isConnected || isBusy}
           >
-            <legend className="mb-0 text-sm font-semibold text-celo-white">
-              Como deseja enviar?
+            <legend className="mb-2 font-mono text-[11px] font-bold uppercase text-warm-gray">
+              03 / destino
             </legend>
             <div
-              className="grid grid-cols-2 gap-2"
+              className="grid grid-cols-2 border-2 border-celo-white"
               role="radiogroup"
               aria-label="Como deseja enviar?"
             >
-              <button
-                type="button"
-                role="radio"
-                aria-checked={destinationMethod === "phone"}
-                onClick={() => {
-                  onResetStatus();
-                  setDestinationMethod("phone");
-                }}
-                className={[
-                  "flex min-h-12 items-center justify-center gap-2 rounded-2xl border px-3 py-3 text-sm font-semibold transition-colors",
-                  destinationMethod === "phone"
-                    ? "border-celo-white/20 bg-celo-white/[0.04] text-celo-white/75"
-                    : "border-celo-white/8 bg-celo-white/[0.02] text-celo-white/40 opacity-70",
-                ].join(" ")}
-              >
-                Telefone
-                <span className="rounded-full border border-celo-white/10 bg-celo-white/[0.04] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-celo-white/40">
-                  Em breve
-                </span>
-              </button>
               <button
                 type="button"
                 role="radio"
@@ -323,21 +302,38 @@ export function TransferCard({
                   setDestinationMethod("wallet");
                 }}
                 className={[
-                  "flex min-h-12 items-center justify-center rounded-2xl border px-3 py-3 text-sm font-semibold transition-colors",
+                  "min-h-14 border-r-2 border-celo-white px-3 py-3 text-sm font-black uppercase transition-colors",
                   destinationMethod === "wallet"
-                    ? "border-celo-yellow/45 bg-celo-yellow/10 text-celo-white"
-                    : "border-celo-white/12 bg-celo-white/[0.04] text-celo-white/70",
+                    ? "bg-celo-white text-celo-black"
+                    : "bg-celo-black text-celo-white hover:bg-celo-yellow hover:text-celo-black",
                 ].join(" ")}
               >
                 Carteira
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={destinationMethod === "phone"}
+                onClick={() => {
+                  onResetStatus();
+                  setDestinationMethod("phone");
+                }}
+                className={[
+                  "min-h-14 px-3 py-3 text-sm font-black uppercase transition-colors",
+                  destinationMethod === "phone"
+                    ? "bg-editorial-lilac text-celo-black"
+                    : "bg-celo-black text-warm-gray hover:bg-editorial-lilac hover:text-celo-black",
+                ].join(" ")}
+              >
+                Telefone / breve
               </button>
             </div>
           </fieldset>
 
           {isPhoneDestination ? (
-            <>
+            <div className="space-y-3">
               <Input
-                label="Número de telefone"
+                label="telefone / em breve"
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
@@ -349,26 +345,25 @@ export function TransferCard({
                 }}
                 disabled={!wallet.isConnected || isBusy}
               />
-              <p className="rounded-2xl border border-celo-white/10 bg-celo-white/[0.04] px-4 py-3 text-xs leading-relaxed text-celo-white/50">
-                Em breve será possível enviar usando número de telefone no
-                MiniPay.
+              <p className="border border-celo-white/30 px-3 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+                SocialConnect / ODIS ainda não está ativo.
               </p>
-            </>
+            </div>
           ) : (
             <Input
-              label="Para qual carteira?"
+              label="carteira destino"
               type="text"
               inputMode="text"
               autoComplete="off"
               spellCheck={false}
-              placeholder="0x…"
+              placeholder="0x..."
               value={recipient}
               onChange={(e) => {
                 onResetStatus();
                 onRecipientChange(e.target.value);
               }}
               disabled={!wallet.isConnected || isBusy}
-              hint="Cole o endereço completo do destinatário."
+              hint="cole o endereço completo"
             />
           )}
 
@@ -384,20 +379,6 @@ export function TransferCard({
               : `Enviar ${selectedToken.symbol}`}
           </Button>
         </form>
-
-        <p className="mt-4 text-center text-[11px] leading-relaxed text-celo-white/30">
-          No MiniPay, futuramente poderemos permitir envio por contato/telefone,
-          quando o usuário estiver cadastrado.
-        </p>
-
-        {wallet.isConnected ? (
-          <p className="mt-2 text-center text-xs text-celo-white/35">
-            {wallet.isDemo
-              && !isMiniPay
-              ? "Modo demo — envio simulado. Conecte uma carteira real para transferir de verdade."
-              : "Transferência real na rede de teste."}
-          </p>
-        ) : null}
       </div>
     </section>
   );
