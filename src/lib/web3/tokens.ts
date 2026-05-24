@@ -35,7 +35,7 @@ export const WEB3_TOKENS = [
     type: "erc20",
     chainId: CELO_SEPOLIA_CHAIN_ID,
     contractAddress: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
-    available: false,
+    available: true,
   },
   {
     id: "USDT",
@@ -45,6 +45,6 @@ export const WEB3_TOKENS = [
     type: "erc20",
     chainId: CELO_SEPOLIA_CHAIN_ID,
     contractAddress: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
-    available: false,
+    available: true,
   },
 ] as const satisfies readonly TokenMetadata[];

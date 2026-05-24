@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
-import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
+import { WEB3_TOKENS } from "@/lib/web3/tokens";
+import type { TokenId } from "@/lib/web3/tokens";
 import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
 
 type DestinationMethod = "phone" | "wallet";
@@ -14,6 +15,7 @@ type TransferCardProps = {
   wallet: WalletConnectionState;
   amount: string;
   recipient: string;
+  selectedTokenId: TokenId;
   status: TransferStatus;
   message: string | null;
   txHash: `0x${string}` | null;
@@ -24,6 +26,7 @@ type TransferCardProps = {
   isSending: boolean;
   onAmountChange: (value: string) => void;
   onRecipientChange: (value: string) => void;
+  onTokenChange: (value: TokenId) => void;
   onConnect: () => void;
   onSend: () => void;
   onResetStatus: () => void;
@@ -39,6 +42,7 @@ export function TransferCard({
   wallet,
   amount,
   recipient,
+  selectedTokenId,
   status,
   message,
   txHash,
@@ -49,6 +53,7 @@ export function TransferCard({
   isSending,
   onAmountChange,
   onRecipientChange,
+  onTokenChange,
   onConnect,
   onSend,
   onResetStatus,
@@ -61,6 +66,9 @@ export function TransferCard({
   const isPhoneDestination = destinationMethod === "phone";
   const showRealBalance =
     wallet.isConnected && !wallet.isDemo && Boolean(wallet.address);
+  const selectedToken =
+    WEB3_TOKENS.find((token) => token.id === selectedTokenId) ??
+    WEB3_TOKENS[0];
 
   const { balances } = useTokenBalances({
     address: wallet.address,
@@ -191,7 +199,7 @@ export function TransferCard({
               aria-label="Moeda de envio"
             >
               {WEB3_TOKENS.map((token) => {
-                const isSelected = token.id === ACTIVE_SEND_TOKEN_ID;
+                const isSelected = token.id === selectedTokenId;
 
                 if (!token.available) {
                   return (
@@ -239,14 +247,17 @@ export function TransferCard({
                       </span>
                     </span>
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-celo-green">
-                      Ativo agora
+                      {isSelected ? "Selecionado" : "Disponível"}
                     </span>
                     <input
                       type="radio"
                       name="send-token"
                       value={token.id}
                       checked={isSelected}
-                      readOnly
+                      onChange={() => {
+                        onResetStatus();
+                        onTokenChange(token.id);
+                      }}
                       className="sr-only"
                     />
                   </label>
@@ -260,7 +271,7 @@ export function TransferCard({
             type="number"
             inputMode="decimal"
             min="0"
-            step="0.01"
+            step="any"
             placeholder="0,00"
             value={amount}
             onChange={(e) => {
@@ -268,7 +279,7 @@ export function TransferCard({
               onAmountChange(e.target.value);
             }}
             disabled={!wallet.isConnected || isBusy}
-            hint="Informe o valor que deseja enviar"
+            hint={`Informe o valor em ${selectedToken.symbol}`}
           />
 
           <fieldset
@@ -368,7 +379,9 @@ export function TransferCard({
             isLoading={isBusy}
             disabled={!wallet.isConnected || isPhoneDestination}
           >
-            {isPhoneDestination ? "Disponível em breve" : "Enviar"}
+            {isPhoneDestination
+              ? "Disponível em breve"
+              : `Enviar ${selectedToken.symbol}`}
           </Button>
         </form>
 

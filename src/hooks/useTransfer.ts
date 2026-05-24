@@ -8,7 +8,8 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { isAddress, parseUnits } from "viem";
+import { erc20Abi, isAddress, parseUnits } from "viem";
+import type { Address } from "viem";
 import {
   useAccount,
   useChainId,
@@ -18,12 +19,15 @@ import {
   usePublicClient,
   useSendTransaction,
   useSwitchChain,
+  useWriteContract,
 } from "wagmi";
 import {
   CELO_DECIMALS,
   CELO_SEPOLIA_CHAIN_ID,
   CELO_SEPOLIA_EXPLORER_TX_URL,
 } from "@/lib/web3/constants";
+import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
+import type { TokenId } from "@/lib/web3/tokens";
 import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
 
 const DEMO_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
@@ -51,13 +55,13 @@ function getServerSnapshot() {
   return false;
 }
 
-function parseAmountToUnits(value: string): bigint | null {
+function parseAmountToUnits(value: string, decimals: number): bigint | null {
   const trimmed = value.trim();
   if (!trimmed) return null;
   const normalized = trimmed.replace(",", ".");
 
   try {
-    const units = parseUnits(normalized, CELO_DECIMALS);
+    const units = parseUnits(normalized, decimals);
     if (units <= BigInt(0)) return null;
     return units;
   } catch {
@@ -105,6 +109,8 @@ export function useTransfer() {
   const [demoConnected, setDemoConnected] = useState(false);
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [selectedTokenId, setSelectedTokenId] =
+    useState<TokenId>(ACTIVE_SEND_TOKEN_ID);
   const [status, setStatus] = useState<TransferStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
@@ -117,8 +123,25 @@ export function useTransfer() {
   const { switchChainAsync } = useSwitchChain();
   const { sendTransactionAsync, isPending: isSendPending } =
     useSendTransaction();
+  const { writeContractAsync, isPending: isWriteContractPending } =
+    useWriteContract();
   const publicClient = usePublicClient({ chainId: CELO_SEPOLIA_CHAIN_ID });
   const connectors = useConnectors();
+
+  const selectedToken = useMemo(
+    () =>
+      WEB3_TOKENS.find((token) => token.id === selectedTokenId) ??
+      WEB3_TOKENS[0],
+    [selectedTokenId],
+  );
+  const usdcToken = useMemo(
+    () => WEB3_TOKENS.find((token) => token.id === "USDC"),
+    [],
+  );
+  const usdtToken = useMemo(
+    () => WEB3_TOKENS.find((token) => token.id === "USDT"),
+    [],
+  );
 
   const wallet: WalletConnectionState = useMemo(() => {
     if (!mounted) {
@@ -272,7 +295,7 @@ export function useTransfer() {
       return;
     }
 
-    const amountUnits = parseAmountToUnits(trimmedAmount);
+    const amountUnits = parseAmountToUnits(trimmedAmount, CELO_DECIMALS);
     if (amountUnits === null) {
       setStatus("error");
       setMessage("Informe um valor válido.");
@@ -334,6 +357,194 @@ export function useTransfer() {
     publicClient,
   ]);
 
+  const sendUSDC = useCallback(async () => {
+    setTxHash(null);
+
+    if (!wallet.isConnected) {
+      setStatus("error");
+      setMessage("Conecte sua carteira antes de enviar.");
+      return;
+    }
+
+    if (wallet.isDemo) {
+      setStatus("error");
+      setMessage("Envio real de USDC requer uma carteira conectada.");
+      return;
+    }
+
+    if (!usdcToken?.available || !usdcToken.contractAddress) {
+      setStatus("error");
+      setMessage("USDC não está disponível para envio neste momento.");
+      return;
+    }
+
+    const trimmedAmount = amount.trim();
+    if (!trimmedAmount) {
+      setStatus("error");
+      setMessage("Informe um valor válido.");
+      return;
+    }
+
+    const amountUnits = parseAmountToUnits(trimmedAmount, usdcToken.decimals);
+    if (amountUnits === null) {
+      setStatus("error");
+      setMessage("Informe um valor válido.");
+      return;
+    }
+
+    const trimmedRecipient = recipient.trim();
+    if (!isAddress(trimmedRecipient)) {
+      setStatus("error");
+      setMessage("Endereço inválido. Verifique o endereço do destinatário.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("Enviando USDC na Celo Sepolia...");
+
+    const onSepolia = await ensureSepoliaNetwork();
+    if (!onSepolia) return;
+
+    try {
+      const hash = await writeContractAsync({
+        address: usdcToken.contractAddress,
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [trimmedRecipient as Address, amountUnits],
+        chainId: CELO_SEPOLIA_CHAIN_ID,
+      });
+
+      setTxHash(hash);
+      setMessage("Transação de USDC enviada. Aguardando confirmação na rede...");
+
+      if (!publicClient) {
+        throw new Error("Cliente da rede Celo Sepolia indisponível.");
+      }
+
+      await publicClient.waitForTransactionReceipt({ hash });
+
+      setStatus("success");
+      setMessage(
+        `Envio de ${trimmedAmount} USDC concluído com sucesso na Celo Sepolia.`,
+      );
+      setAmount("");
+      setRecipient("");
+    } catch (err) {
+      setStatus("error");
+      setMessage(getErrorMessage(err));
+    }
+  }, [
+    wallet.isConnected,
+    wallet.isDemo,
+    usdcToken,
+    amount,
+    recipient,
+    ensureSepoliaNetwork,
+    writeContractAsync,
+    publicClient,
+  ]);
+
+  const sendUSDT = useCallback(async () => {
+    setTxHash(null);
+
+    if (!wallet.isConnected) {
+      setStatus("error");
+      setMessage("Conecte sua carteira antes de enviar.");
+      return;
+    }
+
+    if (wallet.isDemo) {
+      setStatus("error");
+      setMessage("Envio real de USDT requer uma carteira conectada.");
+      return;
+    }
+
+    if (!usdtToken?.available || !usdtToken.contractAddress) {
+      setStatus("error");
+      setMessage("USDT nao esta disponivel para envio neste momento.");
+      return;
+    }
+
+    const trimmedAmount = amount.trim();
+    if (!trimmedAmount) {
+      setStatus("error");
+      setMessage("Informe um valor valido.");
+      return;
+    }
+
+    const amountUnits = parseAmountToUnits(trimmedAmount, usdtToken.decimals);
+    if (amountUnits === null) {
+      setStatus("error");
+      setMessage("Informe um valor valido.");
+      return;
+    }
+
+    const trimmedRecipient = recipient.trim();
+    if (!isAddress(trimmedRecipient)) {
+      setStatus("error");
+      setMessage("Endereco invalido. Verifique o endereco do destinatario.");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("Enviando USDT na Celo Sepolia...");
+
+    const onSepolia = await ensureSepoliaNetwork();
+    if (!onSepolia) return;
+
+    try {
+      const hash = await writeContractAsync({
+        address: usdtToken.contractAddress,
+        abi: erc20Abi,
+        functionName: "transfer",
+        args: [trimmedRecipient as Address, amountUnits],
+        chainId: CELO_SEPOLIA_CHAIN_ID,
+      });
+
+      setTxHash(hash);
+      setMessage("Transacao de USDT enviada. Aguardando confirmacao na rede...");
+
+      if (!publicClient) {
+        throw new Error("Cliente da rede Celo Sepolia indisponivel.");
+      }
+
+      await publicClient.waitForTransactionReceipt({ hash });
+
+      setStatus("success");
+      setMessage(
+        `Envio de ${trimmedAmount} USDT concluido com sucesso na Celo Sepolia.`,
+      );
+      setAmount("");
+      setRecipient("");
+    } catch (err) {
+      setStatus("error");
+      setMessage(getErrorMessage(err));
+    }
+  }, [
+    wallet.isConnected,
+    wallet.isDemo,
+    usdtToken,
+    amount,
+    recipient,
+    ensureSepoliaNetwork,
+    writeContractAsync,
+    publicClient,
+  ]);
+
+  const sendSelectedToken = useCallback(async () => {
+    if (selectedTokenId === "USDC") {
+      await sendUSDC();
+      return;
+    }
+
+    if (selectedTokenId === "USDT") {
+      await sendUSDT();
+      return;
+    }
+
+    await sendCELO();
+  }, [selectedTokenId, sendCELO, sendUSDC, sendUSDT]);
+
   const isConnecting = status === "loading" && !wallet.isConnected;
 
   const isSending = status === "loading" && wallet.isConnected;
@@ -342,6 +553,8 @@ export function useTransfer() {
     wallet,
     amount,
     recipient,
+    selectedToken,
+    selectedTokenId,
     status,
     message,
     txHash,
@@ -352,11 +565,13 @@ export function useTransfer() {
     walletAvailable,
     isMiniPay,
     isConnecting,
-    isSending: isSending || isSendPending,
+    isSending: isSending || isSendPending || isWriteContractPending,
     setAmount,
     setRecipient,
+    setSelectedTokenId,
     connectWallet,
     disconnectWallet,
+    sendSelectedToken,
     sendCELO,
     resetStatus: clearTransferFeedback,
   };

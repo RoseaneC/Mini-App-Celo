@@ -9,6 +9,7 @@ export function HomePage() {
     wallet,
     amount,
     recipient,
+    selectedTokenId,
     status,
     message,
     txHash,
@@ -20,9 +21,10 @@ export function HomePage() {
     isSending,
     setAmount,
     setRecipient,
+    setSelectedTokenId,
     connectWallet,
     disconnectWallet,
-    sendCELO,
+    sendSelectedToken,
     resetStatus,
   } = useTransfer();
 
@@ -64,6 +66,7 @@ export function HomePage() {
           wallet={wallet}
           amount={amount}
           recipient={recipient}
+          selectedTokenId={selectedTokenId}
           status={status}
           message={message}
           txHash={txHash}
@@ -74,8 +77,9 @@ export function HomePage() {
           isSending={isSending}
           onAmountChange={setAmount}
           onRecipientChange={setRecipient}
+          onTokenChange={setSelectedTokenId}
           onConnect={() => void connectWallet()}
-          onSend={() => void sendCELO()}
+          onSend={() => void sendSelectedToken()}
           onResetStatus={resetStatus}
         />
 
