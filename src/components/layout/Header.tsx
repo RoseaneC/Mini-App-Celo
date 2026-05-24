@@ -26,7 +26,7 @@ export function Header({
       <div className="mx-auto grid max-w-[480px] grid-cols-[1fr_auto] items-stretch px-4">
         <div className="flex min-w-0 items-center gap-3 border-r-2 border-celo-white py-3 pr-3">
           <span className="font-mono text-[10px] font-bold uppercase text-celo-yellow">
-            Celo Sepolia
+            Celo Mainnet
           </span>
           <div className="h-5 w-px bg-celo-white/35" aria-hidden />
           <p className="truncate text-lg font-black uppercase leading-none text-celo-white">

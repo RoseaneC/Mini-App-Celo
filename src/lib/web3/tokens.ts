@@ -1,4 +1,4 @@
-import { CELO_DECIMALS, CELO_SEPOLIA_CHAIN_ID } from "./constants";
+import { CELO_DECIMALS, CELO_MAINNET_CHAIN_ID } from "./constants";
 
 export type TokenId = "CELO" | "USDC" | "USDT";
 
@@ -24,7 +24,7 @@ export const WEB3_TOKENS = [
     name: "Celo",
     decimals: CELO_DECIMALS,
     type: "native",
-    chainId: CELO_SEPOLIA_CHAIN_ID,
+    chainId: CELO_MAINNET_CHAIN_ID,
     available: true,
   },
   {
@@ -33,8 +33,8 @@ export const WEB3_TOKENS = [
     name: "USDC",
     decimals: 6,
     type: "erc20",
-    chainId: CELO_SEPOLIA_CHAIN_ID,
-    contractAddress: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
+    chainId: CELO_MAINNET_CHAIN_ID,
+    contractAddress: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
     available: true,
   },
   {
@@ -43,8 +43,7 @@ export const WEB3_TOKENS = [
     name: "Tether USD",
     decimals: 6,
     type: "erc20",
-    chainId: CELO_SEPOLIA_CHAIN_ID,
-    contractAddress: "0xd077A400968890Eacc75cdc901F0356c943e4fDb",
-    available: true,
+    chainId: CELO_MAINNET_CHAIN_ID,
+    available: false,
   },
 ] as const satisfies readonly TokenMetadata[];

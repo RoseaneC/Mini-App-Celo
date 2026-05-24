@@ -1,18 +1,20 @@
 # InáPay
 
-InáPay é um Mini App construído na Celo Sepolia focado em pagamentos digitais rápidos, simples e acessíveis usando CELO e stablecoins.
+InáPay é um Mini App construído na Celo Mainnet focado em pagamentos digitais rápidos, simples e acessíveis usando CELO e stablecoins.
 
-O projeto nasceu como um MVP inspirado na simplicidade de experiências como Pix e MiniPay: conectar uma carteira, escolher uma moeda, informar valor e destino, e acompanhar a transação com hash/comprovante na rede.
+O projeto é um MVP mobile-first inspirado na simplicidade de experiências como Pix e MiniPay: conectar uma carteira, escolher uma moeda, informar valor e destino, e acompanhar a transação com hash/comprovante on-chain.
+
+> Aviso de segurança: esta versão opera na Celo Mainnet. Transações usam valor real. Revise moeda, valor e endereço de destino antes de confirmar na carteira.
 
 ## Funcionalidades atuais
 
-- Envio real de CELO na Celo Sepolia.
+- Envio real de CELO na Celo Mainnet.
 - Envio real de USDC via ERC20 `transfer`.
-- Suporte experimental a USDT via ERC20.
+- USDT visível na arquitetura, mas desabilitado enquanto passa por validação mainnet.
 - Detecção automática de ambiente MiniPay.
 - Compatível com MetaMask mobile e desktop por provedores injetados.
 - Modo demo sem wallet para navegação e demonstração da interface.
-- Transferências com comprovante/hash no explorer da Celo Sepolia.
+- Transferências com comprovante/hash no Celoscan.
 - Arquitetura multi-token com CELO, USDC e USDT.
 - Leitura de saldo real para CELO e tokens ERC20 habilitados.
 - Entrada por telefone exibida apenas como funcionalidade futura.
@@ -26,7 +28,7 @@ O projeto nasceu como um MVP inspirado na simplicidade de experiências como Pix
 - Viem
 - TailwindCSS
 - TanStack React Query
-- Celo Sepolia
+- Celo Mainnet
 - ERC20
 - Vercel
 
@@ -36,9 +38,15 @@ O projeto nasceu como um MVP inspirado na simplicidade de experiências como Pix
 |---|---|
 | CELO | Funcional |
 | USDC | Funcional |
-| USDT | Experimental |
+| USDT | Em validação |
 
-USDT está habilitado em caráter experimental na Celo Sepolia. O contrato, `decimals` e bytecode foram validados on-chain, mas o envio ponta a ponta ainda deve ser validado com fundos reais de teste antes de ser tratado como funcional no mesmo nível de CELO e USDC.
+USDC mainnet:
+
+```text
+0xcebA9300f2b948710d2653dD7B07f33A8B32118C
+```
+
+USDT não está habilitado para envio mainnet nesta versão. Ele permanece desabilitado até validação oficial de contrato, `decimals`, `symbol`, bytecode, `balanceOf` e compatibilidade ERC20.
 
 ## Como rodar localmente
 
@@ -93,19 +101,26 @@ O projeto está organizado em camadas pequenas e diretas:
 - `src/providers`: providers globais de Wagmi e React Query.
 - `src/types`: tipos compartilhados da aplicação.
 
-O fluxo de CELO usa transação nativa na Celo Sepolia. Os fluxos de USDC e USDT usam chamadas ERC20 `transfer(address,uint256)` com `decimals` específicos de cada token.
+O fluxo de CELO usa transação nativa na Celo Mainnet. O fluxo de USDC usa chamada ERC20 `transfer(address,uint256)` com `decimals` 6.
 
 ## Rede utilizada
 
-A rede ativa do app é **Celo Sepolia**.
+A rede ativa do app é **Celo Mainnet**.
+
+Configuração atual:
+
+- Chain ID: `42220`
+- RPC: `https://forno.celo.org`
+- Explorer: `https://celoscan.io`
+- Explorer TX URL: `https://celoscan.io/tx/`
+- Native currency: `CELO`
 
 Comportamento atual:
 
 - CELO é enviado como moeda nativa da rede.
-- USDC e USDT usam contratos ERC20 na Celo Sepolia.
-- O app tenta alternar para Celo Sepolia quando necessário.
-- Os comprovantes apontam para o explorer da Celo Sepolia.
-- Mainnet não está habilitada nesta versão.
+- USDC usa contrato ERC20 oficial na Celo Mainnet.
+- O app tenta alternar para Celo Mainnet quando necessário.
+- Os comprovantes apontam para o Celoscan.
 
 ## MiniPay
 
@@ -119,6 +134,97 @@ Estado atual:
 - Mantém modo demo quando nenhuma wallet é detectada.
 
 O app ainda não implementa SDKs específicos do MiniPay, ODIS, SocialConnect ou resolução de telefone para carteira.
+
+## Smart Contract
+
+O projeto inclui um contrato simples chamado `InapayRegistry` para registrar comprovantes de pagamentos on-chain.
+
+Características:
+
+- Não recebe fundos.
+- Não guarda fundos.
+- Não possui função de saque.
+- Não possui owner/admin.
+- Registra apenas metadados do comprovante.
+
+Contrato:
+
+```text
+contracts/InapayRegistry.sol
+```
+
+Função principal:
+
+```solidity
+recordPayment(address receiver, address token, uint256 amount, bytes32 paymentRef)
+```
+
+Campos registrados:
+
+- `id`: identificador incremental.
+- `sender`: endereço que chamou o contrato.
+- `receiver`: destinatário informado.
+- `token`: token do pagamento; `address(0)` representa CELO nativo.
+- `amount`: valor em unidades base do token.
+- `paymentRef`: referência externa em `bytes32`.
+- `timestamp`: horário do bloco.
+
+Evento:
+
+```solidity
+PaymentRecorded(uint256 indexed id, address indexed sender, address indexed receiver, address token, uint256 amount, bytes32 paymentRef, uint256 timestamp)
+```
+
+Compilar contrato:
+
+```bash
+npm run contract:compile
+```
+
+Rodar testes:
+
+```bash
+npm run contract:test
+```
+
+Deploy na Celo Mainnet:
+
+```bash
+CELO_MAINNET_PRIVATE_KEY=0x... npm run contract:deploy:celo
+```
+
+No PowerShell:
+
+```powershell
+$env:CELO_MAINNET_PRIVATE_KEY="0x..."
+npm.cmd run contract:deploy:celo
+```
+
+Verificação no Celoscan após deploy:
+
+```bash
+CELOSCAN_API_KEY=... npm run contract:verify:celo -- <CONTRACT_ADDRESS>
+```
+
+No PowerShell:
+
+```powershell
+$env:CELOSCAN_API_KEY="..."
+npm.cmd run contract:verify:celo -- <CONTRACT_ADDRESS>
+```
+
+## Segurança
+
+Esta versão usa Celo Mainnet e pode movimentar valor real.
+
+Recomendações de teste:
+
+- Comece com valores mínimos, como `0,01`.
+- Confirme se a carteira está na Celo Mainnet.
+- Revise o token selecionado antes de enviar.
+- Revise o endereço completo de destino.
+- Mantenha CELO suficiente para gas.
+- Use o hash no Celoscan para conferir a transação.
 
 ## Screenshots
 
@@ -138,11 +244,11 @@ O app ainda não implementa SDKs específicos do MiniPay, ODIS, SocialConnect ou
 - Integração MiniPay avançada.
 - QR Code payments.
 - Histórico de transações.
+- Validação oficial de USDT na Celo Mainnet.
 - Estados de transação mais detalhados.
-- Checklist de prontidão para mainnet.
 
 ## Sobre o projeto
 
 O objetivo do InáPay é tornar pagamentos digitais mais simples e acessíveis usando a infraestrutura da Celo e stablecoins. O MVP prioriza uma experiência curta e compreensível: conectar carteira, escolher ativo, enviar para outro endereço e receber um comprovante verificável on-chain.
 
-Nesta fase, o foco está em pagamentos por endereço de carteira na Celo Sepolia. Pagamentos por telefone, SocialConnect, ODIS, USDm, QR Code e histórico de transações fazem parte do roadmap e ainda não estão ativos no produto.
+Nesta fase, o foco está em pagamentos por endereço de carteira na Celo Mainnet. Pagamentos por telefone, SocialConnect, ODIS, USDm, QR Code e histórico de transações fazem parte do roadmap e ainda não estão ativos no produto.

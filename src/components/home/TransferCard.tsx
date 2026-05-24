@@ -39,7 +39,7 @@ function statusLabel(status: TransferStatus, message: string | null): string | n
 }
 
 function tokenStateLabel(tokenId: TokenId, selected: boolean): string {
-  if (tokenId === "USDT") return selected ? "Exp ativo" : "Experimental";
+  if (tokenId === "USDT") return selected ? "Em validação" : "Em validação";
   return selected ? "Selecionado" : "Funcional";
 }
 
@@ -98,7 +98,7 @@ export function TransferCard({
             <span className="block text-editorial-lilac">receba.</span>
           </p>
           <div className="text-right font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
-            <span className="block text-celo-yellow">testnet</span>
+            <span className="block text-celo-yellow">mainnet</span>
             <span>{isMiniPay ? "MiniPay" : "wallet"}</span>
           </div>
         </div>
@@ -108,7 +108,7 @@ export function TransferCard({
             role="alert"
             className="border-2 border-editorial-lilac bg-editorial-lilac px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed text-celo-black"
           >
-            Sem wallet detectada. Entre no modo demo para explorar a interface.
+            Sem wallet detectada. Modo demonstração — nenhuma transação real será enviada.
           </div>
         ) : null}
 
@@ -124,7 +124,7 @@ export function TransferCard({
             </div>
             {wallet.isDemo && !isMiniPay ? (
               <p className="mt-2 font-mono text-[10px] font-bold uppercase text-celo-yellow">
-                modo demo / envio simulado
+                modo demonstração / nenhuma transação real será enviada
               </p>
             ) : null}
 
@@ -223,7 +223,7 @@ export function TransferCard({
                         {token.symbol}
                       </span>
                       <span className="font-mono text-[9px] font-bold uppercase text-warm-gray">
-                        em breve
+                        em validação
                       </span>
                     </div>
                   );

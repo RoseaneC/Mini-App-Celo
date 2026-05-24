@@ -23,8 +23,8 @@ import {
 } from "wagmi";
 import {
   CELO_DECIMALS,
-  CELO_SEPOLIA_CHAIN_ID,
-  CELO_SEPOLIA_EXPLORER_TX_URL,
+  CELO_MAINNET_CHAIN_ID,
+  CELO_MAINNET_EXPLORER_TX_URL,
 } from "@/lib/web3/constants";
 import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TokenId } from "@/lib/web3/tokens";
@@ -125,7 +125,7 @@ export function useTransfer() {
     useSendTransaction();
   const { writeContractAsync, isPending: isWriteContractPending } =
     useWriteContract();
-  const publicClient = usePublicClient({ chainId: CELO_SEPOLIA_CHAIN_ID });
+  const publicClient = usePublicClient({ chainId: CELO_MAINNET_CHAIN_ID });
   const connectors = useConnectors();
 
   const selectedToken = useMemo(
@@ -138,11 +138,6 @@ export function useTransfer() {
     () => WEB3_TOKENS.find((token) => token.id === "USDC"),
     [],
   );
-  const usdtToken = useMemo(
-    () => WEB3_TOKENS.find((token) => token.id === "USDT"),
-    [],
-  );
-
   const wallet: WalletConnectionState = useMemo(() => {
     if (!mounted) {
       return { isConnected: false, address: null, isDemo: false };
@@ -198,7 +193,7 @@ export function useTransfer() {
     setMessage(
       isMiniPay
         ? "Conectando MiniPay..."
-        : "Conectando carteira na rede Celo Sepolia...",
+        : "Conectando carteira na Celo Mainnet...",
     );
 
     try {
@@ -262,18 +257,18 @@ export function useTransfer() {
     setRecipient("");
   }, [amount]);
 
-  const ensureSepoliaNetwork = useCallback(async (): Promise<boolean> => {
-    if (chainId === CELO_SEPOLIA_CHAIN_ID) return true;
+  const ensureMainnetNetwork = useCallback(async (): Promise<boolean> => {
+    if (chainId === CELO_MAINNET_CHAIN_ID) return true;
 
-    setMessage("Alternando para a rede Celo Sepolia...");
+    setMessage("Alternando para a Celo Mainnet...");
 
     try {
-      await switchChainAsync({ chainId: CELO_SEPOLIA_CHAIN_ID });
+      await switchChainAsync({ chainId: CELO_MAINNET_CHAIN_ID });
       return true;
     } catch (err) {
       setStatus("error");
       setMessage(
-        `Rede incorreta. Selecione Celo Sepolia (chainId ${CELO_SEPOLIA_CHAIN_ID}) na carteira. ${getErrorMessage(err)}`,
+        `Rede incorreta. Selecione Celo Mainnet (chainId ${CELO_MAINNET_CHAIN_ID}) na carteira. ${getErrorMessage(err)}`,
       );
       return false;
     }
@@ -315,30 +310,30 @@ export function useTransfer() {
     }
 
     setStatus("loading");
-    setMessage("Enviando CELO na Celo Sepolia...");
+    setMessage("Enviando CELO na Celo Mainnet...");
 
-    const onSepolia = await ensureSepoliaNetwork();
-    if (!onSepolia) return;
+    const onMainnet = await ensureMainnetNetwork();
+    if (!onMainnet) return;
 
     try {
       const hash = await sendTransactionAsync({
         to: trimmedRecipient as `0x${string}`,
         value: amountUnits,
-        chainId: CELO_SEPOLIA_CHAIN_ID,
+        chainId: CELO_MAINNET_CHAIN_ID,
       });
 
       setTxHash(hash);
       setMessage("Transação enviada. Aguardando confirmação na rede...");
 
       if (!publicClient) {
-        throw new Error("Cliente da rede Celo Sepolia indisponível.");
+        throw new Error("Cliente da Celo Mainnet indisponível.");
       }
 
       await publicClient.waitForTransactionReceipt({ hash });
 
       setStatus("success");
       setMessage(
-        `Envio de ${trimmedAmount} CELO concluído com sucesso na Celo Sepolia.`,
+        `Envio de ${trimmedAmount} CELO concluído com sucesso na Celo Mainnet.`,
       );
       setAmount("");
       setRecipient("");
@@ -352,7 +347,7 @@ export function useTransfer() {
     amount,
     recipient,
     sendDemoCELO,
-    ensureSepoliaNetwork,
+    ensureMainnetNetwork,
     sendTransactionAsync,
     publicClient,
   ]);
@@ -400,10 +395,10 @@ export function useTransfer() {
     }
 
     setStatus("loading");
-    setMessage("Enviando USDC na Celo Sepolia...");
+    setMessage("Enviando USDC na Celo Mainnet...");
 
-    const onSepolia = await ensureSepoliaNetwork();
-    if (!onSepolia) return;
+    const onMainnet = await ensureMainnetNetwork();
+    if (!onMainnet) return;
 
     try {
       const hash = await writeContractAsync({
@@ -411,21 +406,21 @@ export function useTransfer() {
         abi: erc20Abi,
         functionName: "transfer",
         args: [trimmedRecipient as Address, amountUnits],
-        chainId: CELO_SEPOLIA_CHAIN_ID,
+        chainId: CELO_MAINNET_CHAIN_ID,
       });
 
       setTxHash(hash);
       setMessage("Transação de USDC enviada. Aguardando confirmação na rede...");
 
       if (!publicClient) {
-        throw new Error("Cliente da rede Celo Sepolia indisponível.");
+        throw new Error("Cliente da Celo Mainnet indisponível.");
       }
 
       await publicClient.waitForTransactionReceipt({ hash });
 
       setStatus("success");
       setMessage(
-        `Envio de ${trimmedAmount} USDC concluído com sucesso na Celo Sepolia.`,
+        `Envio de ${trimmedAmount} USDC concluído com sucesso na Celo Mainnet.`,
       );
       setAmount("");
       setRecipient("");
@@ -439,111 +434,31 @@ export function useTransfer() {
     usdcToken,
     amount,
     recipient,
-    ensureSepoliaNetwork,
-    writeContractAsync,
-    publicClient,
-  ]);
-
-  const sendUSDT = useCallback(async () => {
-    setTxHash(null);
-
-    if (!wallet.isConnected) {
-      setStatus("error");
-      setMessage("Conecte sua carteira antes de enviar.");
-      return;
-    }
-
-    if (wallet.isDemo) {
-      setStatus("error");
-      setMessage("Envio real de USDT requer uma carteira conectada.");
-      return;
-    }
-
-    if (!usdtToken?.available || !usdtToken.contractAddress) {
-      setStatus("error");
-      setMessage("USDT nao esta disponivel para envio neste momento.");
-      return;
-    }
-
-    const trimmedAmount = amount.trim();
-    if (!trimmedAmount) {
-      setStatus("error");
-      setMessage("Informe um valor valido.");
-      return;
-    }
-
-    const amountUnits = parseAmountToUnits(trimmedAmount, usdtToken.decimals);
-    if (amountUnits === null) {
-      setStatus("error");
-      setMessage("Informe um valor valido.");
-      return;
-    }
-
-    const trimmedRecipient = recipient.trim();
-    if (!isAddress(trimmedRecipient)) {
-      setStatus("error");
-      setMessage("Endereco invalido. Verifique o endereco do destinatario.");
-      return;
-    }
-
-    setStatus("loading");
-    setMessage("Enviando USDT na Celo Sepolia...");
-
-    const onSepolia = await ensureSepoliaNetwork();
-    if (!onSepolia) return;
-
-    try {
-      const hash = await writeContractAsync({
-        address: usdtToken.contractAddress,
-        abi: erc20Abi,
-        functionName: "transfer",
-        args: [trimmedRecipient as Address, amountUnits],
-        chainId: CELO_SEPOLIA_CHAIN_ID,
-      });
-
-      setTxHash(hash);
-      setMessage("Transacao de USDT enviada. Aguardando confirmacao na rede...");
-
-      if (!publicClient) {
-        throw new Error("Cliente da rede Celo Sepolia indisponivel.");
-      }
-
-      await publicClient.waitForTransactionReceipt({ hash });
-
-      setStatus("success");
-      setMessage(
-        `Envio de ${trimmedAmount} USDT concluido com sucesso na Celo Sepolia.`,
-      );
-      setAmount("");
-      setRecipient("");
-    } catch (err) {
-      setStatus("error");
-      setMessage(getErrorMessage(err));
-    }
-  }, [
-    wallet.isConnected,
-    wallet.isDemo,
-    usdtToken,
-    amount,
-    recipient,
-    ensureSepoliaNetwork,
+    ensureMainnetNetwork,
     writeContractAsync,
     publicClient,
   ]);
 
   const sendSelectedToken = useCallback(async () => {
+    if (!selectedToken.available) {
+      setStatus("error");
+      setMessage(`${selectedToken.symbol} está em validação para mainnet.`);
+      return;
+    }
+
+    if (selectedTokenId === "CELO") {
+      await sendCELO();
+      return;
+    }
+
     if (selectedTokenId === "USDC") {
       await sendUSDC();
       return;
     }
 
-    if (selectedTokenId === "USDT") {
-      await sendUSDT();
-      return;
-    }
-
-    await sendCELO();
-  }, [selectedTokenId, sendCELO, sendUSDC, sendUSDT]);
+    setStatus("error");
+    setMessage("Token indisponível para envio na Celo Mainnet.");
+  }, [selectedToken, selectedTokenId, sendCELO, sendUSDC]);
 
   const isConnecting = status === "loading" && !wallet.isConnected;
 
@@ -559,7 +474,7 @@ export function useTransfer() {
     message,
     txHash,
     txExplorerUrl: txHash
-      ? `${CELO_SEPOLIA_EXPLORER_TX_URL}${txHash}`
+      ? `${CELO_MAINNET_EXPLORER_TX_URL}${txHash}`
       : null,
     mounted,
     walletAvailable,

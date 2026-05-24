@@ -1,13 +1,13 @@
 import { createConfig, fallback, http } from "wagmi";
 import { injected } from "wagmi/connectors";
-import { celoSepolia } from "viem/chains";
-import { CELO_SEPOLIA_CHAIN_ID, CELO_SEPOLIA_RPC_URL } from "./constants";
+import { celo } from "viem/chains";
+import { CELO_MAINNET_CHAIN_ID, CELO_MAINNET_RPC_URL } from "./constants";
 
 export const wagmiConfig = createConfig({
-  chains: [celoSepolia],
+  chains: [celo],
   connectors: [injected()],
   transports: {
-    [celoSepolia.id]: fallback([http(CELO_SEPOLIA_RPC_URL)]),
+    [celo.id]: fallback([http(CELO_MAINNET_RPC_URL)]),
   },
   ssr: true,
 });
@@ -17,9 +17,9 @@ export const wagmiConfig = createConfig({
  * Transações usam `wagmiConfig` + viem.
  */
 export const web3Config = {
-  chain: celoSepolia,
-  chainId: CELO_SEPOLIA_CHAIN_ID,
-  chainName: "Celo Sepolia",
+  chain: celo,
+  chainId: CELO_MAINNET_CHAIN_ID,
+  chainName: "Celo Mainnet",
   nativeCurrency: { name: "CELO", symbol: "CELO", decimals: 18 },
   connectors: ["injected"] as const,
 } as const;

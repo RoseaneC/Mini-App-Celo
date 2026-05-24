@@ -16,7 +16,7 @@ function ManifestoStrip() {
         <div className="flex flex-col justify-between border-l-2 border-celo-white pl-3 font-mono text-[10px] font-bold uppercase text-warm-gray">
           <span>CELO</span>
           <span>USDC</span>
-          <span>USDT exp</span>
+          <span>USDT val</span>
         </div>
       </div>
     </section>
@@ -66,7 +66,7 @@ export function HomePage() {
           <div className="grid grid-cols-[1fr_auto] items-start gap-4 border-b-2 border-celo-white pb-4">
             <p className="font-mono text-[11px] font-bold uppercase leading-relaxed text-warm-gray">
               Mini app Web3
-              <span className="block text-celo-yellow">Celo Sepolia</span>
+              <span className="block text-celo-yellow">Celo Mainnet</span>
             </p>
             <p className="max-w-28 text-right font-mono text-[10px] font-bold uppercase leading-relaxed text-celo-white">
               LATAM digital money
@@ -92,6 +92,15 @@ export function HomePage() {
               <span>instantaneamente.</span>
               <span>stablecoins sem teatro.</span>
             </div>
+          </div>
+
+          <div className="mt-4 border-2 border-celo-white bg-celo-black px-3 py-3">
+            <p className="font-mono text-[11px] font-black uppercase leading-relaxed text-celo-yellow">
+              Rede principal: transações usam valor real.
+            </p>
+            <p className="mt-1 font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+              Revise moeda, valor e destino antes de confirmar.
+            </p>
           </div>
         </section>
 

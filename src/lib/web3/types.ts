@@ -10,7 +10,7 @@ export type Web3ConnectorId = "minipay" | "injected" | "walletConnect";
 export type SendTokenParams = {
   to: `0x${string}`;
   amount: string;
-  token: "CELO" | "USDC" | "USDT";
+  token: "CELO" | "USDC";
 };
 
 export type SendTokenResult = {
