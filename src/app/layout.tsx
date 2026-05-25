@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: "InáPay",
   description:
     "Pagamentos digitais rápidos, simples e modernos. Powered by Celo.",
+  other: {
+    "talentapp:project_verification": "COLE_A_TAG_COMPLETA_DA_TELA_AQUI",
+  },
 };
 
 export const viewport: Viewport = {
