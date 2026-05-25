@@ -30,14 +30,18 @@ import {
 } from "wagmi";
 import {
   CELO_DECIMALS,
+  CELO_MAINNET_CHAIN_HEX_ID,
   CELO_MAINNET_CHAIN_ID,
+  CELO_MAINNET_EXPLORER_URL,
   CELO_MAINNET_EXPLORER_TX_URL,
+  CELO_MAINNET_RPC_URL,
   NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS,
 } from "@/lib/web3/constants";
 import { INAPAY_REGISTRY_ABI } from "@/lib/web3/inapayRegistry";
 import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TokenId } from "@/lib/web3/tokens";
 import type {
+  PaymentReceiptData,
   RegistryStatus,
   TransferStatus,
   WalletConnectionState,
@@ -51,6 +55,14 @@ type RegistryPaymentInput = {
   tokenAddress: Address;
   amountUnits: bigint;
   paymentTxHash: Hash;
+};
+
+type WalletError = Error & {
+  code?: number;
+};
+
+type SwitchToMainnetOptions = {
+  updateTransferStatus?: boolean;
 };
 
 function hasInjectedProvider(): boolean {
@@ -108,6 +120,55 @@ function getErrorMessage(err: unknown): string {
   return "Ocorreu um erro inesperado.";
 }
 
+function getFriendlyTransactionError(err: unknown): string {
+  const message = getErrorMessage(err);
+
+  if (
+    message.includes("does not match the target chain") ||
+    message.includes("current chain") ||
+    message.includes("Chain mismatch")
+  ) {
+    return "Abra sua wallet e confirme a troca para Celo Mainnet.";
+  }
+
+  return message;
+}
+
+function shouldAddCeloMainnet(err: unknown): boolean {
+  const walletError = err as WalletError;
+  const message = getErrorMessage(err).toLowerCase();
+
+  return (
+    walletError.code === 4902 ||
+    message.includes("unrecognized chain") ||
+    message.includes("not been added") ||
+    message.includes("unknown chain")
+  );
+}
+
+async function addCeloMainnetToWallet() {
+  if (!window.ethereum?.request) {
+    throw new Error("Carteira indisponível para adicionar a Celo Mainnet.");
+  }
+
+  await window.ethereum.request({
+    method: "wallet_addEthereumChain",
+    params: [
+      {
+        chainId: CELO_MAINNET_CHAIN_HEX_ID,
+        chainName: "Celo Mainnet",
+        nativeCurrency: {
+          name: "CELO",
+          symbol: "CELO",
+          decimals: CELO_DECIMALS,
+        },
+        rpcUrls: [CELO_MAINNET_RPC_URL],
+        blockExplorerUrls: [CELO_MAINNET_EXPLORER_URL],
+      },
+    ],
+  });
+}
+
 async function withConnectionTimeout<T>(promise: Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     const timeoutId = setTimeout(() => {
@@ -154,13 +215,16 @@ export function useTransfer() {
     useState<RegistryStatus>("idle");
   const [registryMessage, setRegistryMessage] = useState<string | null>(null);
   const [registryTxHash, setRegistryTxHash] = useState<Hash | null>(null);
+  const [paymentReceipt, setPaymentReceipt] =
+    useState<PaymentReceiptData | null>(null);
   const miniPayAutoConnectAttempted = useRef(false);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { connectAsync } = useConnect();
   const { disconnect } = useDisconnect();
-  const { switchChainAsync } = useSwitchChain();
+  const { switchChainAsync, isPending: isSwitchChainPending } =
+    useSwitchChain();
   const { sendTransactionAsync, isPending: isSendPending } =
     useSendTransaction();
   const { writeContractAsync, isPending: isWriteContractPending } =
@@ -197,6 +261,8 @@ export function useTransfer() {
 
     return { isConnected: false, address: null, isDemo: false };
   }, [mounted, isConnected, address, demoConnected]);
+  const needsMainnetSwitch =
+    wallet.isConnected && !wallet.isDemo && chainId !== CELO_MAINNET_CHAIN_ID;
 
   const injectedConnector = useMemo(
     () => connectors.find((c) => c.type === "injected") ?? connectors[0],
@@ -214,6 +280,7 @@ export function useTransfer() {
       setStatus("idle");
       setMessage(null);
       setTxHash(null);
+      setPaymentReceipt(null);
       clearRegistryFeedback();
     }
   }, [clearRegistryFeedback, registryStatus, status]);
@@ -221,6 +288,7 @@ export function useTransfer() {
   const connectWallet = useCallback(async () => {
     setMessage(null);
     setTxHash(null);
+    setPaymentReceipt(null);
     clearRegistryFeedback();
 
     if (!walletAvailable) {
@@ -298,6 +366,7 @@ export function useTransfer() {
     setStatus("idle");
     setMessage(null);
     setTxHash(null);
+    setPaymentReceipt(null);
     clearRegistryFeedback();
   }, [clearRegistryFeedback, disconnect, isConnected]);
 
@@ -305,6 +374,7 @@ export function useTransfer() {
     setStatus("loading");
     setMessage("Enviando CELO (modo demo)...");
     setTxHash(null);
+    setPaymentReceipt(null);
 
     await new Promise((r) => setTimeout(r, 1500));
 
@@ -316,22 +386,74 @@ export function useTransfer() {
     setRecipient("");
   }, [amount]);
 
+  const switchToMainnet = useCallback(
+    async (
+      options: SwitchToMainnetOptions = {},
+    ): Promise<boolean> => {
+      if (chainId === CELO_MAINNET_CHAIN_ID) return true;
+
+      const updateTransferStatus = options.updateTransferStatus ?? true;
+
+      if (updateTransferStatus) {
+        setStatus("loading");
+        setMessage("Abra sua wallet e confirme a troca para Celo Mainnet.");
+      }
+
+      try {
+        await switchChainAsync({ chainId: CELO_MAINNET_CHAIN_ID });
+
+        if (updateTransferStatus) {
+          setStatus("idle");
+          setMessage(null);
+        }
+
+        return true;
+      } catch (err) {
+        if (shouldAddCeloMainnet(err)) {
+          try {
+            if (updateTransferStatus) {
+              setMessage("Adicione a Celo Mainnet na sua wallet para continuar.");
+            }
+
+            await addCeloMainnetToWallet();
+            await switchChainAsync({ chainId: CELO_MAINNET_CHAIN_ID });
+
+            if (updateTransferStatus) {
+              setStatus("idle");
+              setMessage(null);
+            }
+
+            return true;
+          } catch {
+            if (updateTransferStatus) {
+              setStatus("error");
+              setMessage("Abra sua wallet e confirme a troca para Celo Mainnet.");
+            }
+
+            return false;
+          }
+        }
+
+        if (updateTransferStatus) {
+          setStatus("error");
+          setMessage("Abra sua wallet e confirme a troca para Celo Mainnet.");
+        }
+
+        return false;
+      }
+    },
+    [chainId, switchChainAsync],
+  );
+
   const ensureMainnetNetwork = useCallback(async (): Promise<boolean> => {
     if (chainId === CELO_MAINNET_CHAIN_ID) return true;
 
-    setMessage("Alternando para a Celo Mainnet...");
-
-    try {
-      await switchChainAsync({ chainId: CELO_MAINNET_CHAIN_ID });
-      return true;
-    } catch (err) {
-      setStatus("error");
-      setMessage(
-        `Rede incorreta. Selecione Celo Mainnet (chainId ${CELO_MAINNET_CHAIN_ID}) na carteira. ${getErrorMessage(err)}`,
-      );
-      return false;
-    }
-  }, [chainId, switchChainAsync]);
+    setStatus("error");
+    setMessage(
+      "Sua carteira está em outra rede. Troque para Celo Mainnet para continuar.",
+    );
+    return false;
+  }, [chainId]);
 
   const recordPaymentOnRegistry = useCallback(
     async ({
@@ -380,6 +502,23 @@ export function useTransfer() {
       );
 
       try {
+        if (chainId !== CELO_MAINNET_CHAIN_ID) {
+          setRegistryStatus("loading");
+          setRegistryMessage("Abra sua wallet e confirme a troca para Celo Mainnet.");
+
+          const onMainnet = await switchToMainnet({
+            updateTransferStatus: false,
+          });
+
+          if (!onMainnet) {
+            setRegistryStatus("error");
+            setRegistryMessage(
+              "Pagamento confirmado. Registro on-chain do comprovante não foi salvo.",
+            );
+            return null;
+          }
+        }
+
         setRegistryStatus("loading");
         setRegistryMessage("Registrando comprovante on-chain...");
 
@@ -410,11 +549,12 @@ export function useTransfer() {
         return null;
       }
     },
-    [address, publicClient, writeContractAsync],
+    [address, chainId, publicClient, switchToMainnet, writeContractAsync],
   );
 
   const sendCELO = useCallback(async () => {
     setTxHash(null);
+    setPaymentReceipt(null);
     clearRegistryFeedback();
 
     if (!wallet.isConnected) {
@@ -473,6 +613,14 @@ export function useTransfer() {
 
       setStatus("success");
       setMessage(`Pagamento confirmado: ${trimmedAmount} CELO enviado.`);
+      setPaymentReceipt({
+        amount: trimmedAmount,
+        tokenSymbol: "CELO",
+        recipient: trimmedRecipient as Address,
+        createdAt: new Date().toISOString(),
+        paymentHash: hash,
+        paymentExplorerUrl: `${CELO_MAINNET_EXPLORER_TX_URL}${hash}`,
+      });
 
       await recordPaymentOnRegistry({
         receiver: trimmedRecipient as Address,
@@ -485,7 +633,7 @@ export function useTransfer() {
       setRecipient("");
     } catch (err) {
       setStatus("error");
-      setMessage(getErrorMessage(err));
+      setMessage(getFriendlyTransactionError(err));
     }
   }, [
     wallet.isConnected,
@@ -502,6 +650,7 @@ export function useTransfer() {
 
   const sendUSDC = useCallback(async () => {
     setTxHash(null);
+    setPaymentReceipt(null);
     clearRegistryFeedback();
 
     if (!wallet.isConnected) {
@@ -569,6 +718,14 @@ export function useTransfer() {
 
       setStatus("success");
       setMessage(`Pagamento confirmado: ${trimmedAmount} USDC enviado.`);
+      setPaymentReceipt({
+        amount: trimmedAmount,
+        tokenSymbol: "USDC",
+        recipient: trimmedRecipient as Address,
+        createdAt: new Date().toISOString(),
+        paymentHash: hash,
+        paymentExplorerUrl: `${CELO_MAINNET_EXPLORER_TX_URL}${hash}`,
+      });
 
       await recordPaymentOnRegistry({
         receiver: trimmedRecipient as Address,
@@ -581,7 +738,7 @@ export function useTransfer() {
       setRecipient("");
     } catch (err) {
       setStatus("error");
-      setMessage(getErrorMessage(err));
+      setMessage(getFriendlyTransactionError(err));
     }
   }, [
     wallet.isConnected,
@@ -640,22 +797,28 @@ export function useTransfer() {
     registryExplorerUrl: registryTxHash
       ? `${CELO_MAINNET_EXPLORER_TX_URL}${registryTxHash}`
       : null,
+    paymentReceipt,
     mounted,
     walletAvailable,
     isMiniPay,
     isMobileWithoutWallet,
     metamaskDeepLink,
+    needsMainnetSwitch,
+    currentChainId: chainId,
     isConnecting,
     isSending:
       isSending ||
       isRegistryRecording ||
+      isSwitchChainPending ||
       isSendPending ||
       isWriteContractPending,
+    isSwitchingNetwork: isSwitchChainPending,
     setAmount,
     setRecipient,
     setSelectedTokenId,
     connectWallet,
     disconnectWallet,
+    switchToMainnet,
     sendSelectedToken,
     sendCELO,
     resetStatus: clearTransferFeedback,

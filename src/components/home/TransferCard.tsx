@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { PaymentReceipt } from "@/components/home/PaymentReceipt";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
@@ -8,6 +9,7 @@ import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TokenId } from "@/lib/web3/tokens";
 import type {
+  PaymentReceiptData,
   RegistryStatus,
   TransferStatus,
   WalletConnectionState,
@@ -22,22 +24,24 @@ type TransferCardProps = {
   selectedTokenId: TokenId;
   status: TransferStatus;
   message: string | null;
-  txHash: `0x${string}` | null;
-  txExplorerUrl: string | null;
   registryStatus: RegistryStatus;
-  registryMessage: string | null;
   registryTxHash: `0x${string}` | null;
   registryExplorerUrl: string | null;
+  paymentReceipt: PaymentReceiptData | null;
   mounted: boolean;
   walletAvailable: boolean;
   isMiniPay: boolean;
   isMobileWithoutWallet: boolean;
   metamaskDeepLink: string;
+  needsMainnetSwitch: boolean;
+  currentChainId: number;
   isSending: boolean;
+  isSwitchingNetwork: boolean;
   onAmountChange: (value: string) => void;
   onRecipientChange: (value: string) => void;
   onTokenChange: (value: TokenId) => void;
   onConnect: () => void;
+  onSwitchNetwork: () => void;
   onSend: () => void;
   onResetStatus: () => void;
 };
@@ -53,12 +57,6 @@ function tokenStateLabel(tokenId: TokenId, selected: boolean): string {
   return selected ? "Selecionado" : "Funcional";
 }
 
-function registryStatusClass(status: RegistryStatus): string {
-  if (status === "success") return "border-celo-green bg-celo-green text-celo-black";
-  if (status === "error") return "border-celo-yellow bg-celo-black text-celo-yellow";
-  return "border-editorial-lilac bg-celo-black text-editorial-lilac";
-}
-
 export function TransferCard({
   wallet,
   amount,
@@ -66,22 +64,24 @@ export function TransferCard({
   selectedTokenId,
   status,
   message,
-  txHash,
-  txExplorerUrl,
   registryStatus,
-  registryMessage,
   registryTxHash,
   registryExplorerUrl,
+  paymentReceipt,
   mounted,
   walletAvailable,
   isMiniPay,
   isMobileWithoutWallet,
   metamaskDeepLink,
+  needsMainnetSwitch,
+  currentChainId,
   isSending,
+  isSwitchingNetwork,
   onAmountChange,
   onRecipientChange,
   onTokenChange,
   onConnect,
+  onSwitchNetwork,
   onSend,
   onResetStatus,
 }: TransferCardProps) {
@@ -89,6 +89,7 @@ export function TransferCard({
     useState<DestinationMethod>("wallet");
   const [phoneNumber, setPhoneNumber] = useState("");
   const displayMessage = statusLabel(status, message);
+  const showStatusMessage = Boolean(displayMessage) && !paymentReceipt;
   const isBusy = isSending;
   const isPhoneDestination = destinationMethod === "phone";
   const showRealBalance =
@@ -200,55 +201,48 @@ export function TransferCard({
           </div>
         ) : null}
 
-        <StatusMessage status={status} message={displayMessage} />
-
-        {txHash && txExplorerUrl ? (
-          <div className="border-2 border-celo-green bg-celo-green px-3 py-3 text-celo-black">
-            <p className="font-mono text-[10px] font-black uppercase">
-              pagamento confirmado
+        {needsMainnetSwitch ? (
+          <div
+            role="alert"
+            className="space-y-3 border-2 border-celo-yellow bg-celo-black px-3 py-3 text-celo-yellow"
+          >
+            <p className="font-mono text-[11px] font-black uppercase leading-relaxed">
+              Sua carteira está em outra rede. Troque para Celo Mainnet para
+              continuar.
             </p>
-            <a
-              href={txExplorerUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 block break-all font-mono text-[11px] font-bold underline"
+            <p className="font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+              Rede atual: chainId {currentChainId}
+            </p>
+            <Button
+              type="button"
+              variant="primary"
+              fullWidth
+              isLoading={isSwitchingNetwork}
+              onClick={onSwitchNetwork}
             >
-              {txHash}
-            </a>
+              Trocar para Celo Mainnet
+            </Button>
           </div>
         ) : null}
 
-        {registryMessage ? (
-          <div
-            className={[
-              "border-2 px-3 py-3",
-              registryStatusClass(registryStatus),
-            ].join(" ")}
-          >
-            <p className="font-mono text-[10px] font-black uppercase">
-              registro do comprovante
-            </p>
-            <p className="mt-2 font-mono text-[11px] font-bold uppercase leading-relaxed">
-              {registryMessage}
-            </p>
-            {registryTxHash && registryExplorerUrl ? (
-              <a
-                href={registryExplorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 block break-all font-mono text-[11px] font-bold underline"
-              >
-                {registryTxHash}
-              </a>
-            ) : null}
-          </div>
+        {showStatusMessage ? (
+          <StatusMessage status={status} message={displayMessage} />
+        ) : null}
+
+        {paymentReceipt ? (
+          <PaymentReceipt
+            receipt={paymentReceipt}
+            registryStatus={registryStatus}
+            registryTxHash={registryTxHash}
+            registryExplorerUrl={registryExplorerUrl}
+          />
         ) : null}
 
         <form
           className="space-y-5"
           onSubmit={(e) => {
             e.preventDefault();
-            if (isPhoneDestination) return;
+            if (isPhoneDestination || needsMainnetSwitch) return;
             onSend();
           }}
         >
@@ -447,7 +441,9 @@ export function TransferCard({
             variant="primary"
             fullWidth
             isLoading={isBusy}
-            disabled={!wallet.isConnected || isPhoneDestination}
+            disabled={
+              !wallet.isConnected || isPhoneDestination || needsMainnetSwitch
+            }
           >
             {isPhoneDestination
               ? "Disponível em breve"

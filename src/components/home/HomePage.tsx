@@ -31,24 +31,26 @@ export function HomePage() {
     selectedTokenId,
     status,
     message,
-    txHash,
-    txExplorerUrl,
     registryStatus,
-    registryMessage,
     registryTxHash,
     registryExplorerUrl,
+    paymentReceipt,
     mounted,
     walletAvailable,
     isMiniPay,
     isMobileWithoutWallet,
     metamaskDeepLink,
+    needsMainnetSwitch,
+    currentChainId,
     isConnecting,
     isSending,
+    isSwitchingNetwork,
     setAmount,
     setRecipient,
     setSelectedTokenId,
     connectWallet,
     disconnectWallet,
+    switchToMainnet,
     sendSelectedToken,
     resetStatus,
   } = useTransfer();
@@ -118,22 +120,24 @@ export function HomePage() {
           selectedTokenId={selectedTokenId}
           status={status}
           message={message}
-          txHash={txHash}
-          txExplorerUrl={txExplorerUrl}
           registryStatus={registryStatus}
-          registryMessage={registryMessage}
           registryTxHash={registryTxHash}
           registryExplorerUrl={registryExplorerUrl}
+          paymentReceipt={paymentReceipt}
           mounted={mounted}
           walletAvailable={walletAvailable}
           isMiniPay={isMiniPay}
           isMobileWithoutWallet={isMobileWithoutWallet}
           metamaskDeepLink={metamaskDeepLink}
+          needsMainnetSwitch={needsMainnetSwitch}
+          currentChainId={currentChainId}
           isSending={isSending}
+          isSwitchingNetwork={isSwitchingNetwork}
           onAmountChange={setAmount}
           onRecipientChange={setRecipient}
           onTokenChange={setSelectedTokenId}
           onConnect={() => void connectWallet()}
+          onSwitchNetwork={() => void switchToMainnet()}
           onSend={() => void sendSelectedToken()}
           onResetStatus={resetStatus}
         />
