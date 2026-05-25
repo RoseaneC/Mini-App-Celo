@@ -7,7 +7,11 @@ import { StatusMessage } from "@/components/home/StatusMessage";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TokenId } from "@/lib/web3/tokens";
-import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
+import type {
+  RegistryStatus,
+  TransferStatus,
+  WalletConnectionState,
+} from "@/types/transfer";
 
 type DestinationMethod = "phone" | "wallet";
 
@@ -20,6 +24,10 @@ type TransferCardProps = {
   message: string | null;
   txHash: `0x${string}` | null;
   txExplorerUrl: string | null;
+  registryStatus: RegistryStatus;
+  registryMessage: string | null;
+  registryTxHash: `0x${string}` | null;
+  registryExplorerUrl: string | null;
   mounted: boolean;
   walletAvailable: boolean;
   isMiniPay: boolean;
@@ -43,6 +51,12 @@ function tokenStateLabel(tokenId: TokenId, selected: boolean): string {
   return selected ? "Selecionado" : "Funcional";
 }
 
+function registryStatusClass(status: RegistryStatus): string {
+  if (status === "success") return "border-celo-green bg-celo-green text-celo-black";
+  if (status === "error") return "border-celo-yellow bg-celo-black text-celo-yellow";
+  return "border-editorial-lilac bg-celo-black text-editorial-lilac";
+}
+
 export function TransferCard({
   wallet,
   amount,
@@ -52,6 +66,10 @@ export function TransferCard({
   message,
   txHash,
   txExplorerUrl,
+  registryStatus,
+  registryMessage,
+  registryTxHash,
+  registryExplorerUrl,
   mounted,
   walletAvailable,
   isMiniPay,
@@ -158,7 +176,7 @@ export function TransferCard({
         {txHash && txExplorerUrl ? (
           <div className="border-2 border-celo-green bg-celo-green px-3 py-3 text-celo-black">
             <p className="font-mono text-[10px] font-black uppercase">
-              comprovante on-chain
+              pagamento confirmado
             </p>
             <a
               href={txExplorerUrl}
@@ -168,6 +186,32 @@ export function TransferCard({
             >
               {txHash}
             </a>
+          </div>
+        ) : null}
+
+        {registryMessage ? (
+          <div
+            className={[
+              "border-2 px-3 py-3",
+              registryStatusClass(registryStatus),
+            ].join(" ")}
+          >
+            <p className="font-mono text-[10px] font-black uppercase">
+              registro do comprovante
+            </p>
+            <p className="mt-2 font-mono text-[11px] font-bold uppercase leading-relaxed">
+              {registryMessage}
+            </p>
+            {registryTxHash && registryExplorerUrl ? (
+              <a
+                href={registryExplorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 block break-all font-mono text-[11px] font-bold underline"
+              >
+                {registryTxHash}
+              </a>
+            ) : null}
           </div>
         ) : null}
 

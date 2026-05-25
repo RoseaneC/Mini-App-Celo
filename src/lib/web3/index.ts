@@ -4,7 +4,10 @@ export {
   CELO_DECIMALS,
   CELO_MAINNET_RPC_URL,
   CELO_MAINNET_EXPLORER_TX_URL,
+  DEFAULT_INAPAY_REGISTRY_ADDRESS,
+  NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS,
 } from "./constants";
+export { INAPAY_REGISTRY_ABI } from "./inapayRegistry";
 export { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "./tokens";
 export type { TokenId, TokenMetadata, TokenType } from "./tokens";
 export type { SendTokenParams, SendTokenResult, Web3ConnectorId } from "./types";

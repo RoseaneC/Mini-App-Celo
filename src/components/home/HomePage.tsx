@@ -33,6 +33,10 @@ export function HomePage() {
     message,
     txHash,
     txExplorerUrl,
+    registryStatus,
+    registryMessage,
+    registryTxHash,
+    registryExplorerUrl,
     mounted,
     walletAvailable,
     isMiniPay,
@@ -113,6 +117,10 @@ export function HomePage() {
           message={message}
           txHash={txHash}
           txExplorerUrl={txExplorerUrl}
+          registryStatus={registryStatus}
+          registryMessage={registryMessage}
+          registryTxHash={registryTxHash}
+          registryExplorerUrl={registryExplorerUrl}
           mounted={mounted}
           walletAvailable={walletAvailable}
           isMiniPay={isMiniPay}

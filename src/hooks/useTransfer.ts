@@ -8,8 +8,15 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { erc20Abi, isAddress, parseUnits } from "viem";
-import type { Address } from "viem";
+import {
+  encodePacked,
+  erc20Abi,
+  isAddress,
+  keccak256,
+  parseUnits,
+  zeroAddress,
+} from "viem";
+import type { Address, Hash } from "viem";
 import {
   useAccount,
   useChainId,
@@ -25,13 +32,26 @@ import {
   CELO_DECIMALS,
   CELO_MAINNET_CHAIN_ID,
   CELO_MAINNET_EXPLORER_TX_URL,
+  NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS,
 } from "@/lib/web3/constants";
+import { INAPAY_REGISTRY_ABI } from "@/lib/web3/inapayRegistry";
 import { ACTIVE_SEND_TOKEN_ID, WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TokenId } from "@/lib/web3/tokens";
-import type { TransferStatus, WalletConnectionState } from "@/types/transfer";
+import type {
+  RegistryStatus,
+  TransferStatus,
+  WalletConnectionState,
+} from "@/types/transfer";
 
 const DEMO_ADDRESS = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0";
 const CONNECTION_TIMEOUT_MS = 25_000;
+
+type RegistryPaymentInput = {
+  receiver: Address;
+  tokenAddress: Address;
+  amountUnits: bigint;
+  paymentTxHash: Hash;
+};
 
 function hasInjectedProvider(): boolean {
   if (typeof window === "undefined") return false;
@@ -113,7 +133,11 @@ export function useTransfer() {
     useState<TokenId>(ACTIVE_SEND_TOKEN_ID);
   const [status, setStatus] = useState<TransferStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
+  const [txHash, setTxHash] = useState<Hash | null>(null);
+  const [registryStatus, setRegistryStatus] =
+    useState<RegistryStatus>("idle");
+  const [registryMessage, setRegistryMessage] = useState<string | null>(null);
+  const [registryTxHash, setRegistryTxHash] = useState<Hash | null>(null);
   const miniPayAutoConnectAttempted = useRef(false);
 
   const { address, isConnected } = useAccount();
@@ -159,17 +183,25 @@ export function useTransfer() {
     [connectors],
   );
 
+  const clearRegistryFeedback = useCallback(() => {
+    setRegistryStatus("idle");
+    setRegistryMessage(null);
+    setRegistryTxHash(null);
+  }, []);
+
   const clearTransferFeedback = useCallback(() => {
-    if (status !== "loading") {
+    if (status !== "loading" && registryStatus !== "loading") {
       setStatus("idle");
       setMessage(null);
       setTxHash(null);
+      clearRegistryFeedback();
     }
-  }, [status]);
+  }, [clearRegistryFeedback, registryStatus, status]);
 
   const connectWallet = useCallback(async () => {
     setMessage(null);
     setTxHash(null);
+    clearRegistryFeedback();
 
     if (!walletAvailable) {
       setStatus("loading");
@@ -207,7 +239,13 @@ export function useTransfer() {
       setStatus("error");
       setMessage(getErrorMessage(err));
     }
-  }, [walletAvailable, injectedConnector, connectAsync, isMiniPay]);
+  }, [
+    walletAvailable,
+    injectedConnector,
+    connectAsync,
+    isMiniPay,
+    clearRegistryFeedback,
+  ]);
 
   useEffect(() => {
     if (
@@ -240,7 +278,8 @@ export function useTransfer() {
     setStatus("idle");
     setMessage(null);
     setTxHash(null);
-  }, [disconnect, isConnected]);
+    clearRegistryFeedback();
+  }, [clearRegistryFeedback, disconnect, isConnected]);
 
   const sendDemoCELO = useCallback(async () => {
     setStatus("loading");
@@ -274,8 +313,89 @@ export function useTransfer() {
     }
   }, [chainId, switchChainAsync]);
 
+  const recordPaymentOnRegistry = useCallback(
+    async ({
+      receiver,
+      tokenAddress,
+      amountUnits,
+      paymentTxHash,
+    }: RegistryPaymentInput) => {
+      setRegistryTxHash(null);
+
+      if (!address || !isAddress(address)) {
+        setRegistryStatus("error");
+        setRegistryMessage(
+          "Pagamento confirmado. Aviso: carteira do pagador indisponível para registrar o comprovante.",
+        );
+        return null;
+      }
+
+      if (
+        !NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS ||
+        !isAddress(NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS)
+      ) {
+        setRegistryStatus("error");
+        setRegistryMessage(
+          "Pagamento confirmado. Aviso: registry on-chain não configurado.",
+        );
+        return null;
+      }
+
+      if (!publicClient) {
+        setRegistryStatus("error");
+        setRegistryMessage(
+          "Pagamento confirmado. Aviso: cliente da Celo Mainnet indisponível para registrar o comprovante.",
+        );
+        return null;
+      }
+
+      const sender = address as Address;
+      const registryAddress = NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS as Address;
+      const timestamp = BigInt(Date.now());
+      const paymentRef = keccak256(
+        encodePacked(
+          ["address", "address", "address", "uint256", "bytes32", "uint256"],
+          [sender, receiver, tokenAddress, amountUnits, paymentTxHash, timestamp],
+        ),
+      );
+
+      try {
+        setRegistryStatus("loading");
+        setRegistryMessage("Registrando comprovante on-chain...");
+
+        const registryHash = await writeContractAsync({
+          address: registryAddress,
+          abi: INAPAY_REGISTRY_ABI,
+          functionName: "recordPayment",
+          args: [receiver, tokenAddress, amountUnits, paymentRef],
+          chainId: CELO_MAINNET_CHAIN_ID,
+        });
+
+        setRegistryTxHash(registryHash);
+        setRegistryMessage(
+          "Comprovante enviado. Aguardando confirmação on-chain...",
+        );
+
+        await publicClient.waitForTransactionReceipt({ hash: registryHash });
+
+        setRegistryStatus("success");
+        setRegistryMessage("Comprovante registrado on-chain.");
+
+        return { registryHash, paymentRef };
+      } catch (err) {
+        setRegistryStatus("error");
+        setRegistryMessage(
+          `Pagamento confirmado. Aviso: comprovante não registrado on-chain. ${getErrorMessage(err)}`,
+        );
+        return null;
+      }
+    },
+    [address, publicClient, writeContractAsync],
+  );
+
   const sendCELO = useCallback(async () => {
     setTxHash(null);
+    clearRegistryFeedback();
 
     if (!wallet.isConnected) {
       setStatus("error");
@@ -332,9 +452,15 @@ export function useTransfer() {
       await publicClient.waitForTransactionReceipt({ hash });
 
       setStatus("success");
-      setMessage(
-        `Envio de ${trimmedAmount} CELO concluído com sucesso na Celo Mainnet.`,
-      );
+      setMessage(`Pagamento confirmado: ${trimmedAmount} CELO enviado.`);
+
+      await recordPaymentOnRegistry({
+        receiver: trimmedRecipient as Address,
+        tokenAddress: zeroAddress,
+        amountUnits,
+        paymentTxHash: hash,
+      });
+
       setAmount("");
       setRecipient("");
     } catch (err) {
@@ -346,14 +472,17 @@ export function useTransfer() {
     wallet.isDemo,
     amount,
     recipient,
+    clearRegistryFeedback,
     sendDemoCELO,
     ensureMainnetNetwork,
     sendTransactionAsync,
     publicClient,
+    recordPaymentOnRegistry,
   ]);
 
   const sendUSDC = useCallback(async () => {
     setTxHash(null);
+    clearRegistryFeedback();
 
     if (!wallet.isConnected) {
       setStatus("error");
@@ -419,9 +548,15 @@ export function useTransfer() {
       await publicClient.waitForTransactionReceipt({ hash });
 
       setStatus("success");
-      setMessage(
-        `Envio de ${trimmedAmount} USDC concluído com sucesso na Celo Mainnet.`,
-      );
+      setMessage(`Pagamento confirmado: ${trimmedAmount} USDC enviado.`);
+
+      await recordPaymentOnRegistry({
+        receiver: trimmedRecipient as Address,
+        tokenAddress: usdcToken.contractAddress,
+        amountUnits,
+        paymentTxHash: hash,
+      });
+
       setAmount("");
       setRecipient("");
     } catch (err) {
@@ -434,9 +569,11 @@ export function useTransfer() {
     usdcToken,
     amount,
     recipient,
+    clearRegistryFeedback,
     ensureMainnetNetwork,
     writeContractAsync,
     publicClient,
+    recordPaymentOnRegistry,
   ]);
 
   const sendSelectedToken = useCallback(async () => {
@@ -463,6 +600,7 @@ export function useTransfer() {
   const isConnecting = status === "loading" && !wallet.isConnected;
 
   const isSending = status === "loading" && wallet.isConnected;
+  const isRegistryRecording = registryStatus === "loading";
 
   return {
     wallet,
@@ -476,11 +614,21 @@ export function useTransfer() {
     txExplorerUrl: txHash
       ? `${CELO_MAINNET_EXPLORER_TX_URL}${txHash}`
       : null,
+    registryStatus,
+    registryMessage,
+    registryTxHash,
+    registryExplorerUrl: registryTxHash
+      ? `${CELO_MAINNET_EXPLORER_TX_URL}${registryTxHash}`
+      : null,
     mounted,
     walletAvailable,
     isMiniPay,
     isConnecting,
-    isSending: isSending || isSendPending || isWriteContractPending,
+    isSending:
+      isSending ||
+      isRegistryRecording ||
+      isSendPending ||
+      isWriteContractPending,
     setAmount,
     setRecipient,
     setSelectedTokenId,

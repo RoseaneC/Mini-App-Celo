@@ -1,7 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox");
 
 const celoPrivateKey = process.env.CELO_MAINNET_PRIVATE_KEY;
-const celoscanApiKey = process.env.CELOSCAN_API_KEY ?? "";
+const etherscanApiKey = process.env.ETHERSCAN_API_KEY ?? "";
 
 /** @type import("hardhat/config").HardhatUserConfig */
 module.exports = {
@@ -23,9 +23,7 @@ module.exports = {
     },
   },
   etherscan: {
-    apiKey: {
-      celo: celoscanApiKey,
-    },
+    apiKey: etherscanApiKey,
     customChains: [
       {
         network: "celo",

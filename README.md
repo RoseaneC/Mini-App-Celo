@@ -15,6 +15,7 @@ O projeto é um MVP mobile-first inspirado na simplicidade de experiências como
 - Compatível com MetaMask mobile e desktop por provedores injetados.
 - Modo demo sem wallet para navegação e demonstração da interface.
 - Transferências com comprovante/hash no Celoscan.
+- Registro opcional de comprovante no contrato `InapayRegistry` após confirmação do pagamento.
 - Arquitetura multi-token com CELO, USDC e USDT.
 - Leitura de saldo real para CELO e tokens ERC20 habilitados.
 - Entrada por telefone exibida apenas como funcionalidade futura.
@@ -153,6 +154,12 @@ Contrato:
 contracts/InapayRegistry.sol
 ```
 
+Contrato deployado e verificado na Celo Mainnet:
+
+```text
+0x56C5B94f05C0888E9a4106200A69841D25C902Cd
+```
+
 Função principal:
 
 ```solidity
@@ -174,6 +181,24 @@ Evento:
 ```solidity
 PaymentRecorded(uint256 indexed id, address indexed sender, address indexed receiver, address token, uint256 amount, bytes32 paymentRef, uint256 timestamp)
 ```
+
+## On-chain payment registry
+
+Após a confirmação de um pagamento CELO ou USDC, o frontend tenta registrar automaticamente um comprovante no `InapayRegistry` chamando:
+
+```solidity
+recordPayment(address receiver, address token, uint256 amount, bytes32 paymentRef)
+```
+
+O `paymentRef` é um `bytes32` gerado a partir de `sender`, `receiver`, `token`, `amount`, hash da transação principal e timestamp local. Para CELO nativo, o campo `token` usa `address(0)`. Para USDC, usa o contrato oficial de USDC na Celo Mainnet.
+
+Variável pública do frontend:
+
+```bash
+NEXT_PUBLIC_INAPAY_REGISTRY_ADDRESS=0x56C5B94f05C0888E9a4106200A69841D25C902Cd
+```
+
+Se o registro no contrato falhar, o pagamento principal continua válido. O app mostra o hash do pagamento e exibe apenas um aviso leve sobre o registro do comprovante.
 
 Compilar contrato:
 
@@ -203,13 +228,13 @@ npm.cmd run contract:deploy:celo
 Verificação no Celoscan após deploy:
 
 ```bash
-CELOSCAN_API_KEY=... npm run contract:verify:celo -- <CONTRACT_ADDRESS>
+ETHERSCAN_API_KEY=... npm run contract:verify:celo -- <CONTRACT_ADDRESS>
 ```
 
 No PowerShell:
 
 ```powershell
-$env:CELOSCAN_API_KEY="..."
+$env:ETHERSCAN_API_KEY="..."
 npm.cmd run contract:verify:celo -- <CONTRACT_ADDRESS>
 ```
 
