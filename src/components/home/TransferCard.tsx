@@ -31,6 +31,8 @@ type TransferCardProps = {
   mounted: boolean;
   walletAvailable: boolean;
   isMiniPay: boolean;
+  isMobileWithoutWallet: boolean;
+  metamaskDeepLink: string;
   isSending: boolean;
   onAmountChange: (value: string) => void;
   onRecipientChange: (value: string) => void;
@@ -73,6 +75,8 @@ export function TransferCard({
   mounted,
   walletAvailable,
   isMiniPay,
+  isMobileWithoutWallet,
+  metamaskDeepLink,
   isSending,
   onAmountChange,
   onRecipientChange,
@@ -89,6 +93,14 @@ export function TransferCard({
   const isPhoneDestination = destinationMethod === "phone";
   const showRealBalance =
     wallet.isConnected && !wallet.isDemo && Boolean(wallet.address);
+  const connectionLabel = wallet.isDemo
+    ? "Modo demonstração"
+    : isMiniPay
+      ? "MiniPay"
+      : "Carteira";
+  const connectionValue = wallet.isDemo
+    ? "sem wallet real"
+    : `${wallet.address?.slice(0, 8)}...${wallet.address?.slice(-6)}`;
   const selectedToken =
     WEB3_TOKENS.find((token) => token.id === selectedTokenId) ??
     WEB3_TOKENS[0];
@@ -121,7 +133,24 @@ export function TransferCard({
           </div>
         </div>
 
-        {mounted && !walletAvailable && !isMiniPay && !wallet.isConnected ? (
+        {isMobileWithoutWallet && !wallet.isConnected ? (
+          <div
+            role="alert"
+            className="space-y-3 border-2 border-editorial-lilac bg-editorial-lilac px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed text-celo-black"
+          >
+            <p>
+              Para conectar sua carteira no celular, abra este link dentro do
+              navegador da MetaMask ou do MiniPay.
+            </p>
+            <a
+              href={metamaskDeepLink}
+              className="block border-2 border-celo-black bg-celo-black px-3 py-3 text-center text-celo-yellow transition-colors hover:bg-editorial-lilac hover:text-celo-black"
+            >
+              Abrir na MetaMask
+            </a>
+            <p>Modo demonstração — nenhuma transação real será enviada.</p>
+          </div>
+        ) : mounted && !walletAvailable && !isMiniPay && !wallet.isConnected ? (
           <div
             role="alert"
             className="border-2 border-editorial-lilac bg-editorial-lilac px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed text-celo-black"
@@ -134,15 +163,15 @@ export function TransferCard({
           <div className="border-y border-celo-white/25 py-3">
             <div className="flex items-start justify-between gap-4">
               <span className="font-mono text-[10px] font-bold uppercase text-warm-gray">
-                {isMiniPay ? "MiniPay" : "Carteira"}
+                {connectionLabel}
               </span>
               <span className="break-all text-right font-mono text-[11px] font-bold text-celo-green">
-                {wallet.address?.slice(0, 8)}...{wallet.address?.slice(-6)}
+                {connectionValue}
               </span>
             </div>
             {wallet.isDemo && !isMiniPay ? (
               <p className="mt-2 font-mono text-[10px] font-bold uppercase text-celo-yellow">
-                modo demonstração / nenhuma transação real será enviada
+                Modo demonstração — nenhuma transação real será enviada.
               </p>
             ) : null}
 
@@ -231,7 +260,9 @@ export function TransferCard({
               isLoading={isBusy}
               onClick={onConnect}
             >
-              {walletAvailable || isMiniPay ? "Entrar" : "Conectar demo"}
+              {walletAvailable || isMiniPay
+                ? "Entrar"
+                : "Entrar no modo demonstração"}
             </Button>
           ) : null}
 

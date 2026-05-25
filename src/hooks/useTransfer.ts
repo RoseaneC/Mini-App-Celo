@@ -63,6 +63,20 @@ function hasMiniPayProvider(): boolean {
   return Boolean(window.ethereum?.isMiniPay);
 }
 
+function isMobileBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android|iPhone|iPad|iPod|IEMobile|Opera Mini|Mobile/i.test(
+    navigator.userAgent,
+  );
+}
+
+function getMetaMaskDeepLink(): string {
+  if (typeof window === "undefined") return "https://metamask.app.link/dapp/";
+
+  const dappUrl = window.location.href.replace(/^https?:\/\//, "");
+  return `https://metamask.app.link/dapp/${dappUrl}`;
+}
+
 function subscribeNoop() {
   return () => {};
 }
@@ -125,6 +139,8 @@ export function useTransfer() {
   );
   const walletAvailable = mounted && hasInjectedProvider();
   const isMiniPay = mounted && hasMiniPayProvider();
+  const isMobileWithoutWallet =
+    mounted && isMobileBrowser() && !walletAvailable && !isMiniPay;
 
   const [demoConnected, setDemoConnected] = useState(false);
   const [amount, setAmount] = useState("");
@@ -161,6 +177,10 @@ export function useTransfer() {
   const usdcToken = useMemo(
     () => WEB3_TOKENS.find((token) => token.id === "USDC"),
     [],
+  );
+  const metamaskDeepLink = useMemo(
+    () => (mounted ? getMetaMaskDeepLink() : "https://metamask.app.link/dapp/"),
+    [mounted],
   );
   const wallet: WalletConnectionState = useMemo(() => {
     if (!mounted) {
@@ -623,6 +643,8 @@ export function useTransfer() {
     mounted,
     walletAvailable,
     isMiniPay,
+    isMobileWithoutWallet,
+    metamaskDeepLink,
     isConnecting,
     isSending:
       isSending ||

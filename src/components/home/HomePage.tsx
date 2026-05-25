@@ -40,6 +40,8 @@ export function HomePage() {
     mounted,
     walletAvailable,
     isMiniPay,
+    isMobileWithoutWallet,
+    metamaskDeepLink,
     isConnecting,
     isSending,
     setAmount,
@@ -63,6 +65,7 @@ export function HomePage() {
         onConnect={() => void connectWallet()}
         onDisconnect={disconnectWallet}
         isConnecting={isConnecting}
+        connectDisabled={isMobileWithoutWallet}
       />
 
       <main className="relative mx-auto flex w-full max-w-[480px] flex-col px-4 pb-10">
@@ -124,6 +127,8 @@ export function HomePage() {
           mounted={mounted}
           walletAvailable={walletAvailable}
           isMiniPay={isMiniPay}
+          isMobileWithoutWallet={isMobileWithoutWallet}
+          metamaskDeepLink={metamaskDeepLink}
           isSending={isSending}
           onAmountChange={setAmount}
           onRecipientChange={setRecipient}
