@@ -17,9 +17,6 @@ export const metadata: Metadata = {
   title: "InáPay",
   description:
     "Pagamentos digitais rápidos, simples e modernos. Powered by Celo.",
-  other: {
-    "talentapp:project_verification": "COLE_A_TAG_COMPLETA_DA_TELA_AQUI",
-  },
 };
 
 export const viewport: Viewport = {
@@ -38,6 +35,12 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <meta
+          name="talentapp:project_verification"
+          content="c0dd93bd76cd1cb69ae3a6a4b2a1024c18ed2e2d07e6ce5c88e94c7ec27ce878263470cfff29512ac8b22f116fd20a4c592392ea651a5ed82e544ae880c0430f"
+        />
+      </head>
       <body className="min-h-full bg-celo-black text-celo-white">
         <Web3Provider>{children}</Web3Provider>
       </body>
