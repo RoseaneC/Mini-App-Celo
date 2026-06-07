@@ -136,6 +136,29 @@ Estado atual:
 
 O app ainda não implementa SDKs específicos do MiniPay, ODIS, SocialConnect ou resolução de telefone para carteira.
 
+## Embedded Wallet / Google and Phone Login
+
+InáPay inclui suporte inicial a Privy Embedded Wallet para onboarding com experiência de conta digital.
+
+Estado atual:
+
+- Login com Google via Privy.
+- Login com telefone/SMS via Privy.
+- Criação ou recuperação automática de embedded wallet quando o usuário entra com Google ou telefone.
+- A embedded wallet é exibida na interface como `Conta InáPay`.
+- MetaMask e MiniPay continuam disponíveis como opção avançada de wallet existente.
+- O fluxo de envio CELO, envio USDC e registro no `InapayRegistry` continua usando wagmi/viem.
+
+Variável pública necessária:
+
+```bash
+NEXT_PUBLIC_PRIVY_APP_ID=seu_privy_app_id
+```
+
+Se `NEXT_PUBLIC_PRIVY_APP_ID` não estiver configurada, o app mantém o fluxo atual de MetaMask/MiniPay e modo demo, sem ativar o onboarding Privy.
+
+Esta fase não implementa Account Abstraction, smart accounts, gas sponsorship ou paymaster. Usuários ainda precisam de saldo suficiente para o pagamento e para o gas na Celo Mainnet.
+
 ## Smart Contract
 
 O projeto inclui um contrato simples chamado `InapayRegistry` para registrar comprovantes de pagamentos on-chain.

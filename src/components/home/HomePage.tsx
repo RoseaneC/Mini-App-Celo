@@ -2,7 +2,14 @@
 
 import { Header } from "@/components/layout/Header";
 import { TransferCard } from "@/components/home/TransferCard";
+import {
+  disabledInapayEmbeddedWallet,
+  useInapayEmbeddedWallet,
+} from "@/hooks/useInapayEmbeddedWallet";
 import { useTransfer } from "@/hooks/useTransfer";
+import type { InapayEmbeddedWalletState } from "@/hooks/useInapayEmbeddedWallet";
+
+const privyEnabled = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
 
 function ManifestoStrip() {
   return (
@@ -23,7 +30,17 @@ function ManifestoStrip() {
   );
 }
 
-export function HomePage() {
+function HomePageWithPrivy() {
+  const embeddedWallet = useInapayEmbeddedWallet();
+
+  return <HomePageContent embeddedWallet={embeddedWallet} />;
+}
+
+function HomePageContent({
+  embeddedWallet,
+}: {
+  embeddedWallet: InapayEmbeddedWalletState;
+}) {
   const {
     wallet,
     amount,
@@ -55,6 +72,32 @@ export function HomePage() {
     resetStatus,
   } = useTransfer();
 
+  const handleConnect = () => {
+    if (embeddedWallet.isEnabled) {
+      embeddedWallet.loginWithGoogle();
+      return;
+    }
+
+    void connectWallet();
+  };
+
+  const handleUseExistingWallet = () => {
+    if (embeddedWallet.isEnabled) {
+      embeddedWallet.connectExistingWallet();
+      return;
+    }
+
+    void connectWallet();
+  };
+
+  const handleDisconnect = () => {
+    disconnectWallet();
+
+    if (embeddedWallet.isEnabled && embeddedWallet.isAuthenticated) {
+      void embeddedWallet.logout();
+    }
+  };
+
   return (
     <div className="relative min-h-dvh overflow-hidden bg-celo-black text-celo-white">
       <div className="editorial-texture pointer-events-none fixed inset-0 opacity-65" aria-hidden />
@@ -64,10 +107,20 @@ export function HomePage() {
         isConnected={wallet.isConnected}
         address={wallet.address}
         isDemo={wallet.isDemo}
-        onConnect={() => void connectWallet()}
-        onDisconnect={disconnectWallet}
+        accountLabel={
+          embeddedWallet.isEmbeddedActive
+            ? embeddedWallet.accountLabel
+            : undefined
+        }
+        accountDetail={
+          embeddedWallet.isEmbeddedActive
+            ? embeddedWallet.accountDetail
+            : undefined
+        }
+        onConnect={handleConnect}
+        onDisconnect={handleDisconnect}
         isConnecting={isConnecting}
-        connectDisabled={isMobileWithoutWallet}
+        connectDisabled={isMobileWithoutWallet && !embeddedWallet.isEnabled}
       />
 
       <main className="relative mx-auto flex w-full max-w-[480px] flex-col px-4 pb-10">
@@ -133,10 +186,12 @@ export function HomePage() {
           currentChainId={currentChainId}
           isSending={isSending}
           isSwitchingNetwork={isSwitchingNetwork}
+          embeddedWallet={embeddedWallet}
           onAmountChange={setAmount}
           onRecipientChange={setRecipient}
           onTokenChange={setSelectedTokenId}
           onConnect={() => void connectWallet()}
+          onUseExistingWallet={handleUseExistingWallet}
           onSwitchNetwork={() => void switchToMainnet()}
           onSend={() => void sendSelectedToken()}
           onResetStatus={resetStatus}
@@ -151,4 +206,12 @@ export function HomePage() {
       </main>
     </div>
   );
+}
+
+export function HomePage() {
+  if (privyEnabled) {
+    return <HomePageWithPrivy />;
+  }
+
+  return <HomePageContent embeddedWallet={disabledInapayEmbeddedWallet} />;
 }

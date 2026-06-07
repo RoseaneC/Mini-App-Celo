@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { AuthEntry } from "@/components/home/AuthEntry";
 import { PaymentReceipt } from "@/components/home/PaymentReceipt";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
+import type { InapayEmbeddedWalletState } from "@/hooks/useInapayEmbeddedWallet";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { TokenId } from "@/lib/web3/tokens";
@@ -37,10 +39,12 @@ type TransferCardProps = {
   currentChainId: number;
   isSending: boolean;
   isSwitchingNetwork: boolean;
+  embeddedWallet: InapayEmbeddedWalletState;
   onAmountChange: (value: string) => void;
   onRecipientChange: (value: string) => void;
   onTokenChange: (value: TokenId) => void;
   onConnect: () => void;
+  onUseExistingWallet: () => void;
   onSwitchNetwork: () => void;
   onSend: () => void;
   onResetStatus: () => void;
@@ -77,10 +81,12 @@ export function TransferCard({
   currentChainId,
   isSending,
   isSwitchingNetwork,
+  embeddedWallet,
   onAmountChange,
   onRecipientChange,
   onTokenChange,
   onConnect,
+  onUseExistingWallet,
   onSwitchNetwork,
   onSend,
   onResetStatus,
@@ -94,13 +100,18 @@ export function TransferCard({
   const isPhoneDestination = destinationMethod === "phone";
   const showRealBalance =
     wallet.isConnected && !wallet.isDemo && Boolean(wallet.address);
+  const isEmbeddedAccount = embeddedWallet.isEmbeddedActive && !wallet.isDemo;
   const connectionLabel = wallet.isDemo
     ? "Modo demonstração"
-    : isMiniPay
+    : isEmbeddedAccount
+      ? "Conta InáPay"
+      : isMiniPay
       ? "MiniPay"
-      : "Carteira";
+      : "Wallet existente";
   const connectionValue = wallet.isDemo
     ? "sem wallet real"
+    : isEmbeddedAccount
+      ? embeddedWallet.accountDetail
     : `${wallet.address?.slice(0, 8)}...${wallet.address?.slice(-6)}`;
   const selectedToken =
     WEB3_TOKENS.find((token) => token.id === selectedTokenId) ??
@@ -134,7 +145,7 @@ export function TransferCard({
           </div>
         </div>
 
-        {isMobileWithoutWallet && !wallet.isConnected ? (
+        {isMobileWithoutWallet && !wallet.isConnected && !embeddedWallet.isEnabled ? (
           <div
             role="alert"
             className="space-y-3 border-2 border-editorial-lilac bg-editorial-lilac px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed text-celo-black"
@@ -151,7 +162,11 @@ export function TransferCard({
             </a>
             <p>Modo demonstração — nenhuma transação real será enviada.</p>
           </div>
-        ) : mounted && !walletAvailable && !isMiniPay && !wallet.isConnected ? (
+        ) : mounted &&
+          !walletAvailable &&
+          !isMiniPay &&
+          !wallet.isConnected &&
+          !embeddedWallet.isEnabled ? (
           <div
             role="alert"
             className="border-2 border-editorial-lilac bg-editorial-lilac px-3 py-3 font-mono text-[11px] font-bold uppercase leading-relaxed text-celo-black"
@@ -247,17 +262,29 @@ export function TransferCard({
           }}
         >
           {!wallet.isConnected ? (
-            <Button
-              type="button"
-              variant="secondary"
-              fullWidth
-              isLoading={isBusy}
-              onClick={onConnect}
-            >
-              {walletAvailable || isMiniPay
-                ? "Entrar"
-                : "Entrar no modo demonstração"}
-            </Button>
+            embeddedWallet.isEnabled ? (
+              <AuthEntry
+                embeddedWallet={embeddedWallet}
+                walletAvailable={walletAvailable}
+                isMiniPay={isMiniPay}
+                isMobileWithoutWallet={isMobileWithoutWallet}
+                metamaskDeepLink={metamaskDeepLink}
+                isBusy={isBusy}
+                onUseExistingWallet={onUseExistingWallet}
+              />
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                isLoading={isBusy}
+                onClick={onConnect}
+              >
+                {walletAvailable || isMiniPay
+                  ? "Entrar"
+                  : "Entrar no modo demonstração"}
+              </Button>
+            )
           ) : null}
 
           <fieldset

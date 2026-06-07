@@ -1,3 +1,4 @@
+import { createConfig as createPrivyConfig } from "@privy-io/wagmi";
 import { createConfig, fallback, http } from "wagmi";
 import { injected } from "wagmi/connectors";
 import { celo } from "viem/chains";
@@ -10,6 +11,13 @@ export const wagmiConfig = createConfig({
     [celo.id]: fallback([http(CELO_MAINNET_RPC_URL)]),
   },
   ssr: true,
+});
+
+export const privyWagmiConfig = createPrivyConfig({
+  chains: [celo],
+  transports: {
+    [celo.id]: fallback([http(CELO_MAINNET_RPC_URL)]),
+  },
 });
 
 /**

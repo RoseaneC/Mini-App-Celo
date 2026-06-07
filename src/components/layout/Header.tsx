@@ -2,6 +2,8 @@ type HeaderProps = {
   isConnected: boolean;
   address: string | null;
   isDemo: boolean;
+  accountLabel?: string;
+  accountDetail?: string | null;
   onConnect: () => void;
   onDisconnect: () => void;
   isConnecting: boolean;
@@ -16,6 +18,8 @@ export function Header({
   isConnected,
   address,
   isDemo,
+  accountLabel,
+  accountDetail,
   onConnect,
   onDisconnect,
   isConnecting,
@@ -38,10 +42,14 @@ export function Header({
           <div className="flex shrink-0 items-center gap-3 py-2 pl-3">
             <div className="flex flex-col items-end">
               <span className="font-mono text-[11px] font-bold text-celo-green">
-                {isDemo ? "Modo demo" : shortenAddress(address)}
+                {isDemo
+                  ? "Modo demo"
+                  : accountLabel
+                    ? accountLabel
+                    : shortenAddress(address)}
               </span>
               <span className="font-mono text-[9px] uppercase text-warm-gray">
-                {isDemo ? "sem wallet real" : "online"}
+                {isDemo ? "sem wallet real" : accountDetail ?? "online"}
               </span>
             </div>
             <button
