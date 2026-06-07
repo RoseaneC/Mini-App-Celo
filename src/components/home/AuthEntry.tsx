@@ -39,7 +39,7 @@ export function AuthEntry({
         <div>
           <p className="text-2xl font-black uppercase leading-none text-celo-white">
             Conta
-            <span className="block text-celo-yellow">InáPay</span>
+            <span className="block text-celo-yellow">{"In\u00e1Pay"}</span>
           </p>
         </div>
         <span className="font-mono text-[9px] font-black uppercase text-editorial-lilac">
@@ -49,7 +49,7 @@ export function AuthEntry({
 
       {isPreparingAccount ? (
         <div className="border border-celo-yellow px-3 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed text-celo-yellow">
-          Preparando Conta InáPay...
+          {"Preparando Conta In\u00e1Pay..."}
         </div>
       ) : null}
 

@@ -101,7 +101,7 @@ export function useTokenBalances({ address, enabled }: UseTokenBalancesParams) {
         ? usdcBalance.result
         : null;
 
-    console.debug("[InáPay] USDC balanceOf debug", {
+    console.debug("[In\u00e1Pay] USDC balanceOf debug", {
       enabled: shouldReadErc20Balances,
       wallet: maskAddress(address),
       contract: usdcToken?.contractAddress,

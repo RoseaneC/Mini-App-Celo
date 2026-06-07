@@ -104,7 +104,7 @@ export function TransferCard({
   const connectionLabel = wallet.isDemo
     ? "Modo demonstração"
     : isEmbeddedAccount
-      ? "Conta InáPay"
+      ? "Conta In\u00e1Pay"
       : isMiniPay
       ? "MiniPay"
       : "Wallet existente";

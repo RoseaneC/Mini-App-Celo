@@ -58,7 +58,7 @@ export function PaymentReceipt({
   const shareText = useMemo(
     () =>
       [
-        "Pagamento realizado via InáPay",
+        "Pagamento realizado via In\u00e1Pay",
         `Valor: ${receipt.amount} ${receipt.tokenSymbol}`,
         `Destino: ${receipt.recipient}`,
         "Rede: Celo Mainnet",
@@ -85,7 +85,7 @@ export function PaymentReceipt({
 
     try {
       await navigator.share({
-        title: "Comprovante InáPay",
+        title: "Comprovante In\u00e1Pay",
         text: shareText,
       });
     } catch {

@@ -200,7 +200,7 @@ function HomePageContent({
         <ManifestoStrip />
 
         <footer className="grid grid-cols-[1fr_auto] items-end gap-4 py-5 font-mono text-[10px] font-bold uppercase text-warm-gray">
-          <span>InáPay / powered by Celo</span>
+          <span>{"In\u00e1Pay / powered by Celo"}</span>
           <span className="text-right text-celo-white">mobile-first MVP</span>
         </footer>
       </main>

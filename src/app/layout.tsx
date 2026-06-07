@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InáPay",
+  title: "In\u00e1Pay",
   description:
     "Pagamentos digitais rápidos, simples e modernos. Powered by Celo.",
 };

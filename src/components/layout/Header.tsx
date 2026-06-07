@@ -34,7 +34,7 @@ export function Header({
           </span>
           <div className="h-5 w-px bg-celo-white/35" aria-hidden />
           <p className="truncate text-lg font-black uppercase leading-none text-celo-white">
-            InáPay
+            {"In\u00e1Pay"}
           </p>
         </div>
 

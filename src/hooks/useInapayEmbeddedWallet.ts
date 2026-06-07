@@ -45,6 +45,14 @@ export const disabledInapayEmbeddedWallet: InapayEmbeddedWalletState = {
   logout: async () => {},
 };
 
+const INAPAY_ACCOUNT_LABEL = "Conta In\u00e1Pay";
+const LOGIN_UNAVAILABLE_MESSAGE =
+  "N\u00e3o conseguimos abrir esse login agora. Tente novamente ou use uma wallet existente.";
+const PRIVY_METHOD_DISABLED_MESSAGE =
+  "Esse m\u00e9todo ainda precisa ser habilitado no Privy Dashboard.";
+const EMBEDDED_WALLET_ERROR_MESSAGE =
+  "N\u00e3o conseguimos preparar sua Conta In\u00e1Pay agora. Voc\u00ea ainda pode usar uma wallet existente.";
+
 function getEmbeddedWallet(wallets: ConnectedWallet[]) {
   return wallets.find((wallet) => wallet.walletClientType === "privy") ?? null;
 }
@@ -64,7 +72,7 @@ function getAuthErrorMessage(err: unknown): string | null {
   const message = getErrorMessage(err).toLowerCase();
 
   if (!message) {
-    return "Não conseguimos abrir esse login agora. Tente novamente ou use uma wallet existente.";
+    return LOGIN_UNAVAILABLE_MESSAGE;
   }
 
   if (
@@ -74,7 +82,7 @@ function getAuthErrorMessage(err: unknown): string | null {
     message.includes("login with google not allowed") ||
     message.includes("login with wallet not allowed")
   ) {
-    return "Esse método ainda precisa ser habilitado no Privy Dashboard.";
+    return PRIVY_METHOD_DISABLED_MESSAGE;
   }
 
   if (
@@ -85,11 +93,11 @@ function getAuthErrorMessage(err: unknown): string | null {
     return null;
   }
 
-  return "Não conseguimos abrir esse login agora. Tente novamente ou use uma wallet existente.";
+  return LOGIN_UNAVAILABLE_MESSAGE;
 }
 
 function getEmbeddedWalletErrorMessage() {
-  return "Não conseguimos preparar sua Conta InáPay agora. Você ainda pode usar uma wallet existente.";
+  return EMBEDDED_WALLET_ERROR_MESSAGE;
 }
 
 export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
@@ -190,7 +198,7 @@ export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
     hasEmbeddedWallet: Boolean(embeddedWallet),
     isEmbeddedActive,
     embeddedWalletAddress,
-    accountLabel: isEmbeddedActive ? "Conta InáPay" : "Carteira",
+    accountLabel: isEmbeddedActive ? INAPAY_ACCOUNT_LABEL : "Carteira",
     accountDetail: shortenAddress(embeddedWalletAddress),
     error,
     loginWithGoogle,
