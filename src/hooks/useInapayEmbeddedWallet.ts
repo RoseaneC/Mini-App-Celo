@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useConnectWallet,
   useCreateWallet,
   useLogin,
   usePrivy,
@@ -57,7 +56,40 @@ function shortenAddress(address: string | null) {
 
 function getErrorMessage(err: unknown) {
   if (err instanceof Error) return err.message;
-  return "NÃ£o foi possÃ­vel preparar a Conta InÃ¡Pay.";
+  if (typeof err === "string") return err;
+  return "";
+}
+
+function getAuthErrorMessage(err: unknown): string | null {
+  const message = getErrorMessage(err).toLowerCase();
+
+  if (!message) {
+    return "Não conseguimos abrir esse login agora. Tente novamente ou use uma wallet existente.";
+  }
+
+  if (
+    message.includes("not allowed") ||
+    message.includes("not enabled") ||
+    message.includes("login with sms not allowed") ||
+    message.includes("login with google not allowed") ||
+    message.includes("login with wallet not allowed")
+  ) {
+    return "Esse método ainda precisa ser habilitado no Privy Dashboard.";
+  }
+
+  if (
+    message.includes("user exited") ||
+    message.includes("user rejected") ||
+    message.includes("cancel")
+  ) {
+    return null;
+  }
+
+  return "Não conseguimos abrir esse login agora. Tente novamente ou use uma wallet existente.";
+}
+
+function getEmbeddedWalletErrorMessage() {
+  return "Não conseguimos preparar sua Conta InáPay agora. Você ainda pode usar uma wallet existente.";
 }
 
 export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
@@ -71,10 +103,9 @@ export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
   const { wallets, ready: walletsReady } = useWallets();
   const { createWallet } = useCreateWallet();
   const { setActiveWallet } = useSetActiveWallet();
-  const { connectWallet } = useConnectWallet();
   const { login } = useLogin({
     onComplete: () => setError(null),
-    onError: (loginError) => setError(getErrorMessage(loginError)),
+    onError: (loginError) => setError(getAuthErrorMessage(loginError)),
   });
 
   const embeddedWallet = useMemo(() => getEmbeddedWallet(wallets), [wallets]);
@@ -94,7 +125,7 @@ export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
     setError(null);
 
     createWallet()
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch(() => setError(getEmbeddedWalletErrorMessage()))
       .finally(() => setIsCreatingEmbeddedWallet(false));
   }, [
     authenticated,
@@ -109,8 +140,8 @@ export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
     if (!ready || !walletsReady || !authenticated || !embeddedWallet) return;
     if (isEmbeddedActive) return;
 
-    setActiveWallet(embeddedWallet).catch((err) =>
-      setError(getErrorMessage(err)),
+    setActiveWallet(embeddedWallet).catch(() =>
+      setError(getEmbeddedWalletErrorMessage()),
     );
   }, [
     authenticated,
@@ -139,10 +170,11 @@ export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
 
   const connectExistingWallet = useCallback(() => {
     setError(null);
-    connectWallet({
+    login({
+      loginMethods: ["wallet"],
       walletChainType: "ethereum-only",
     });
-  }, [connectWallet]);
+  }, [login]);
 
   const logoutAccount = useCallback(async () => {
     setError(null);
@@ -158,7 +190,7 @@ export function useInapayEmbeddedWallet(): InapayEmbeddedWalletState {
     hasEmbeddedWallet: Boolean(embeddedWallet),
     isEmbeddedActive,
     embeddedWalletAddress,
-    accountLabel: isEmbeddedActive ? "Conta InÃ¡Pay" : "Carteira",
+    accountLabel: isEmbeddedActive ? "Conta InáPay" : "Carteira",
     accountDetail: shortenAddress(embeddedWalletAddress),
     error,
     loginWithGoogle,

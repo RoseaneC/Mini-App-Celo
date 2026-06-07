@@ -155,6 +155,15 @@ Variável pública necessária:
 NEXT_PUBLIC_PRIVY_APP_ID=seu_privy_app_id
 ```
 
+Checklist no Privy Dashboard:
+
+- Habilitar Google como método de login.
+- Habilitar SMS/Phone como método de login.
+- Habilitar Wallet como método de login.
+- Adicionar o domínio de produção da Vercel nas URLs permitidas.
+- Adicionar `http://localhost:3000` para testes locais.
+- Configurar `NEXT_PUBLIC_PRIVY_APP_ID` no ambiente da Vercel.
+
 Se `NEXT_PUBLIC_PRIVY_APP_ID` não estiver configurada, o app mantém o fluxo atual de MetaMask/MiniPay e modo demo, sem ativar o onboarding Privy.
 
 Esta fase não implementa Account Abstraction, smart accounts, gas sponsorship ou paymaster. Usuários ainda precisam de saldo suficiente para o pagamento e para o gas na Celo Mainnet.

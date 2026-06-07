@@ -23,10 +23,11 @@ export function AuthEntry({
   onUseExistingWallet,
 }: AuthEntryProps) {
   const isPreparingAccount =
-    embeddedWallet.isAuthenticated &&
-    (!embeddedWallet.hasEmbeddedWallet ||
+    !embeddedWallet.isPrivyReady ||
+    (embeddedWallet.isAuthenticated &&
+      (!embeddedWallet.hasEmbeddedWallet ||
       embeddedWallet.isCreatingEmbeddedWallet ||
-      !embeddedWallet.isEmbeddedActive);
+        !embeddedWallet.isEmbeddedActive));
   const authDisabled =
     !embeddedWallet.isPrivyReady ||
     embeddedWallet.isCreatingEmbeddedWallet ||
@@ -38,7 +39,7 @@ export function AuthEntry({
         <div>
           <p className="text-2xl font-black uppercase leading-none text-celo-white">
             Conta
-            <span className="block text-celo-yellow">InÃ¡Pay</span>
+            <span className="block text-celo-yellow">InáPay</span>
           </p>
         </div>
         <span className="font-mono text-[9px] font-black uppercase text-editorial-lilac">
@@ -48,7 +49,7 @@ export function AuthEntry({
 
       {isPreparingAccount ? (
         <div className="border border-celo-yellow px-3 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed text-celo-yellow">
-          Preparando sua Conta InÃ¡Pay...
+          Preparando Conta InáPay...
         </div>
       ) : null}
 
