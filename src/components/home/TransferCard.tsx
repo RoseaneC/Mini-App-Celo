@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AuthEntry } from "@/components/home/AuthEntry";
 import { PaymentReceipt } from "@/components/home/PaymentReceipt";
+import { ReceivePanel } from "@/components/home/ReceivePanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusMessage } from "@/components/home/StatusMessage";
@@ -477,6 +478,8 @@ export function TransferCard({
               : `Enviar ${selectedToken.symbol}`}
           </Button>
         </form>
+
+        <ReceivePanel wallet={wallet} />
       </div>
     </section>
   );

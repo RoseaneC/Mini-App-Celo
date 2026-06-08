@@ -168,6 +168,22 @@ Se `NEXT_PUBLIC_PRIVY_APP_ID` não estiver configurada, o app mantém o fluxo at
 
 Esta fase não implementa Account Abstraction, smart accounts, gas sponsorship ou paymaster. Usuários ainda precisam de saldo suficiente para o pagamento e para o gas na Celo Mainnet.
 
+## Receiving payments
+
+Usuários conectados podem copiar ou compartilhar o endereço da carteira ativa para receber pagamentos na Celo Mainnet.
+
+O painel `Receber` mostra:
+
+- `Sua Conta InáPay`.
+- Endereço encurtado da carteira ativa.
+- Botão para copiar endereço.
+- Botão para compartilhar o endereço quando o navegador suporta `navigator.share`.
+- Texto de apoio informando que o endereço pode receber CELO ou USDC na Celo Mainnet.
+
+O endereço vem da conta ativa do wagmi e funciona para Privy Embedded Wallet, MetaMask e MiniPay. No modo demo, o app informa que é necessário entrar com uma conta real para receber pagamentos.
+
+Esta funcionalidade não implementa envio por telefone, QR Code, ODIS ou SocialConnect. Ela apenas facilita o recebimento por endereço de carteira.
+
 ## Smart Contract
 
 O projeto inclui um contrato simples chamado `InapayRegistry` para registrar comprovantes de pagamentos on-chain.
