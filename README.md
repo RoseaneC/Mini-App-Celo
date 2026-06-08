@@ -182,6 +182,8 @@ O painel `Receber` mostra:
 
 O endereço vem da conta ativa do wagmi e funciona para Privy Embedded Wallet, MetaMask e MiniPay. No modo demo, o app informa que é necessário entrar com uma conta real para receber pagamentos.
 
+Google e telefone são usados para autenticação. O endereço exibido é a wallet pública da Conta InáPay na Celo Mainnet.
+
 Esta funcionalidade não implementa envio por telefone, QR Code, ODIS ou SocialConnect. Ela apenas facilita o recebimento por endereço de carteira.
 
 ## Smart Contract

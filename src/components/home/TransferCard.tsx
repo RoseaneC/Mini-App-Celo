@@ -479,7 +479,10 @@ export function TransferCard({
           </Button>
         </form>
 
-        <ReceivePanel wallet={wallet} />
+        <ReceivePanel
+          wallet={wallet}
+          isEmbeddedAccount={isEmbeddedAccount}
+        />
       </div>
     </section>
   );
