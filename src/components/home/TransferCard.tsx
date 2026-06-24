@@ -49,6 +49,7 @@ type TransferCardProps = {
   onSwitchNetwork: () => void;
   onSend: () => void;
   onResetStatus: () => void;
+  showReceivePanel?: boolean;
 };
 
 function statusLabel(status: TransferStatus, message: string | null): string | null {
@@ -91,6 +92,7 @@ export function TransferCard({
   onSwitchNetwork,
   onSend,
   onResetStatus,
+  showReceivePanel = true,
 }: TransferCardProps) {
   const [destinationMethod, setDestinationMethod] =
     useState<DestinationMethod>("wallet");
@@ -479,10 +481,12 @@ export function TransferCard({
           </Button>
         </form>
 
-        <ReceivePanel
-          wallet={wallet}
-          isEmbeddedAccount={isEmbeddedAccount}
-        />
+        {showReceivePanel ? (
+          <ReceivePanel
+            wallet={wallet}
+            isEmbeddedAccount={isEmbeddedAccount}
+          />
+        ) : null}
       </div>
     </section>
   );
