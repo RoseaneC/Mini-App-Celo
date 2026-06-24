@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { AuthEntry } from "@/components/home/AuthEntry";
 import { ReceivePanel } from "@/components/home/ReceivePanel";
 import { Header } from "@/components/layout/Header";
@@ -15,11 +15,29 @@ import { useTransfer } from "@/hooks/useTransfer";
 import { WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { InapayEmbeddedWalletState } from "@/hooks/useInapayEmbeddedWallet";
 import type { TokenBalance } from "@/hooks/useTokenBalances";
-import type { PaymentReceiptData, WalletConnectionState } from "@/types/transfer";
+import type { WalletConnectionState } from "@/types/transfer";
 
 const privyEnabled = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
 
 type AppTab = "home" | "send" | "receive" | "history" | "profile";
+
+type LocalTransactionHistoryItem = {
+  id: `0x${string}`;
+  txHash: `0x${string}`;
+  registryHash: `0x${string}` | null;
+  registryExplorerUrl: string | null;
+  tokenSymbol: "CELO" | "USDC";
+  amount: string;
+  recipient: `0x${string}`;
+  sender: string;
+  createdAt: string;
+  status: "confirmado";
+  network: "Celo Mainnet";
+  paymentExplorerUrl: string;
+};
+
+const LOCAL_HISTORY_STORAGE_KEY = "inapay.localTransactionHistory.v1";
+const LOCAL_HISTORY_UPDATED_EVENT = "inapay-local-history-updated";
 
 const tabs: { id: AppTab; label: string }[] = [
   { id: "home", label: "Inicio" },
@@ -39,6 +57,75 @@ const shortcuts: { id: Exclude<AppTab, "home">; label: string }[] = [
 function shortenAddress(address: string | null) {
   if (!address) return null;
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function getLocalHistorySnapshot() {
+  if (typeof window === "undefined") return "[]";
+  return window.localStorage.getItem(LOCAL_HISTORY_STORAGE_KEY) ?? "[]";
+}
+
+function subscribeToLocalHistory(onStoreChange: () => void) {
+  if (typeof window === "undefined") return () => {};
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === LOCAL_HISTORY_STORAGE_KEY) onStoreChange();
+  };
+
+  window.addEventListener("storage", handleStorage);
+  window.addEventListener(LOCAL_HISTORY_UPDATED_EVENT, onStoreChange);
+
+  return () => {
+    window.removeEventListener("storage", handleStorage);
+    window.removeEventListener(LOCAL_HISTORY_UPDATED_EVENT, onStoreChange);
+  };
+}
+
+function parseLocalHistorySnapshot(snapshot: string): LocalTransactionHistoryItem[] {
+  try {
+    const parsed = JSON.parse(snapshot);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(
+      (item): item is LocalTransactionHistoryItem =>
+        typeof item === "object" &&
+        item !== null &&
+        typeof item.id === "string" &&
+        typeof item.txHash === "string" &&
+        (typeof item.registryHash === "string" || item.registryHash === null) &&
+        (typeof item.registryExplorerUrl === "string" ||
+          item.registryExplorerUrl === null) &&
+        (item.tokenSymbol === "CELO" || item.tokenSymbol === "USDC") &&
+        typeof item.amount === "string" &&
+        typeof item.recipient === "string" &&
+        typeof item.sender === "string" &&
+        typeof item.createdAt === "string" &&
+        item.status === "confirmado" &&
+        item.network === "Celo Mainnet" &&
+        typeof item.paymentExplorerUrl === "string",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalHistory(items: LocalTransactionHistoryItem[]) {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(
+    LOCAL_HISTORY_STORAGE_KEY,
+    JSON.stringify(items.slice(0, 20)),
+  );
+  window.dispatchEvent(new Event(LOCAL_HISTORY_UPDATED_EVENT));
+}
+
+function upsertLocalHistoryItem(item: LocalTransactionHistoryItem) {
+  const currentItems = parseLocalHistorySnapshot(getLocalHistorySnapshot());
+  const nextItems = [
+    item,
+    ...currentItems.filter((currentItem) => currentItem.id !== item.id),
+  ];
+
+  writeLocalHistory(nextItems);
 }
 
 function getConnectionLabel({
@@ -250,17 +337,16 @@ function getProfileConnectionMethod({
 
 function HistoryTab({
   wallet,
-  paymentReceipt,
-  registryExplorerUrl,
+  transactions,
 }: {
   wallet: WalletConnectionState;
-  paymentReceipt: PaymentReceiptData | null;
-  registryExplorerUrl: string | null;
+  transactions: LocalTransactionHistoryItem[];
 }) {
   const walletExplorerUrl =
     wallet.address && !wallet.isDemo
       ? `${CELOSCAN_ADDRESS_URL}${wallet.address}`
       : null;
+  const latestTransaction = transactions[0] ?? null;
 
   return (
     <section className="space-y-4" aria-labelledby="history-title">
@@ -282,7 +368,7 @@ function HistoryTab({
             Ultimo envio
           </h2>
         </div>
-        {paymentReceipt ? (
+        {latestTransaction ? (
           <div className="space-y-3 p-4">
             <div className="grid grid-cols-[1fr_auto] gap-3">
               <div>
@@ -290,38 +376,38 @@ function HistoryTab({
                   Pagamento confirmado
                 </p>
                 <p className="mt-1 text-2xl font-black uppercase leading-none text-celo-white">
-                  {paymentReceipt.amount} {paymentReceipt.tokenSymbol}
+                  {latestTransaction.amount} {latestTransaction.tokenSymbol}
                 </p>
               </div>
               <span className="border border-celo-green px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-green">
-                local
+                {latestTransaction.status}
               </span>
             </div>
             <p className="break-all font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
-              Para {shortenAddress(paymentReceipt.recipient)} em{" "}
-              {formatReceiptDate(paymentReceipt.createdAt)}
+              Para {shortenAddress(latestTransaction.recipient)} em{" "}
+              {formatReceiptDate(latestTransaction.createdAt)}
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               <a
-                href={paymentReceipt.paymentExplorerUrl}
+                href={latestTransaction.paymentExplorerUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="block border-2 border-celo-yellow px-3 py-3 text-center font-mono text-[10px] font-black uppercase text-celo-yellow transition-colors hover:bg-celo-yellow hover:text-celo-black"
               >
-                Ver envio
+                Ver transacao no Celoscan
               </a>
-              {registryExplorerUrl ? (
+              {latestTransaction.registryExplorerUrl ? (
                 <a
-                  href={registryExplorerUrl}
+                  href={latestTransaction.registryExplorerUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="block border-2 border-editorial-lilac px-3 py-3 text-center font-mono text-[10px] font-black uppercase text-editorial-lilac transition-colors hover:bg-editorial-lilac hover:text-celo-black"
                 >
-                  Ver comprovante
+                  Ver comprovante no Registry
                 </a>
               ) : (
                 <span className="block border-2 border-celo-white/25 px-3 py-3 text-center font-mono text-[10px] font-black uppercase text-warm-gray">
-                  Comprovante local
+                  Registry pendente
                 </span>
               )}
             </div>
@@ -334,6 +420,52 @@ function HistoryTab({
           </div>
         )}
       </div>
+
+      {transactions.length > 1 ? (
+        <div className="space-y-2">
+          {transactions.slice(1).map((transaction) => (
+            <article
+              key={transaction.id}
+              className="border border-celo-white/25 bg-celo-black px-3 py-3"
+            >
+              <div className="grid grid-cols-[1fr_auto] gap-3">
+                <div>
+                  <p className="text-lg font-black uppercase leading-none text-celo-white">
+                    {transaction.amount} {transaction.tokenSymbol}
+                  </p>
+                  <p className="mt-2 font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+                    Para {shortenAddress(transaction.recipient)} em{" "}
+                    {formatReceiptDate(transaction.createdAt)}
+                  </p>
+                </div>
+                <span className="border border-celo-green px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-green">
+                  {transaction.status}
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <a
+                  href={transaction.paymentExplorerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block border border-celo-yellow px-3 py-2 text-center font-mono text-[10px] font-black uppercase text-celo-yellow transition-colors hover:bg-celo-yellow hover:text-celo-black"
+                >
+                  Ver transacao no Celoscan
+                </a>
+                {transaction.registryExplorerUrl ? (
+                  <a
+                    href={transaction.registryExplorerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block border border-editorial-lilac px-3 py-2 text-center font-mono text-[10px] font-black uppercase text-editorial-lilac transition-colors hover:bg-editorial-lilac hover:text-celo-black"
+                  >
+                    Ver comprovante no Registry
+                  </a>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : null}
 
       <div className="grid gap-2">
         <div className="border border-celo-white/25 bg-celo-black px-3 py-3">
@@ -355,9 +487,8 @@ function HistoryTab({
       </div>
 
       <p className="border border-editorial-lilac px-3 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
-        Por enquanto, o historico mostra apenas atividades locais desta sessao.
-        Em breve, o Inapay podera buscar registros on-chain e comprovantes
-        anteriores.
+        Este historico e local deste navegador. Em breve, o Inapay podera
+        buscar registros on-chain e comprovantes anteriores.
       </p>
 
       {walletExplorerUrl ? (
@@ -559,6 +690,34 @@ function HomePageContent({
     address: wallet.address,
     enabled: showRealBalance,
   });
+  const localHistorySnapshot = useSyncExternalStore(
+    subscribeToLocalHistory,
+    getLocalHistorySnapshot,
+    () => "[]",
+  );
+  const localHistory = useMemo(
+    () => parseLocalHistorySnapshot(localHistorySnapshot),
+    [localHistorySnapshot],
+  );
+
+  useEffect(() => {
+    if (!paymentReceipt || !wallet.address) return;
+
+    upsertLocalHistoryItem({
+      id: paymentReceipt.paymentHash,
+      txHash: paymentReceipt.paymentHash,
+      registryHash: registryTxHash,
+      registryExplorerUrl,
+      tokenSymbol: paymentReceipt.tokenSymbol,
+      amount: paymentReceipt.amount,
+      recipient: paymentReceipt.recipient,
+      sender: wallet.address,
+      createdAt: paymentReceipt.createdAt,
+      status: "confirmado",
+      network: "Celo Mainnet",
+      paymentExplorerUrl: paymentReceipt.paymentExplorerUrl,
+    });
+  }, [paymentReceipt, registryExplorerUrl, registryTxHash, wallet.address]);
 
   const handleConnect = () => {
     if (embeddedWallet.isEnabled) {
@@ -715,8 +874,7 @@ function HomePageContent({
               {activeTab === "history" ? (
                 <HistoryTab
                   wallet={wallet}
-                  paymentReceipt={paymentReceipt}
-                  registryExplorerUrl={registryExplorerUrl}
+                  transactions={localHistory}
                 />
               ) : null}
 
