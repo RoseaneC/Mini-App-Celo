@@ -12,9 +12,10 @@ import {
 } from "@/hooks/useInapayEmbeddedWallet";
 import { useTokenBalances } from "@/hooks/useTokenBalances";
 import { useTransfer } from "@/hooks/useTransfer";
+import { WEB3_TOKENS } from "@/lib/web3/tokens";
 import type { InapayEmbeddedWalletState } from "@/hooks/useInapayEmbeddedWallet";
 import type { TokenBalance } from "@/hooks/useTokenBalances";
-import type { WalletConnectionState } from "@/types/transfer";
+import type { PaymentReceiptData, WalletConnectionState } from "@/types/transfer";
 
 const privyEnabled = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
 
@@ -220,23 +221,291 @@ function HomeTab({
   );
 }
 
-function PlaceholderTab({
-  title,
-  body,
+const CELOSCAN_ADDRESS_URL = "https://celoscan.io/address/";
+
+function formatReceiptDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function getProfileConnectionMethod({
+  wallet,
+  embeddedWallet,
+  isMiniPay,
 }: {
-  title: string;
-  body: string;
+  wallet: WalletConnectionState;
+  embeddedWallet: InapayEmbeddedWalletState;
+  isMiniPay: boolean;
 }) {
+  if (wallet.isDemo) return "Demo";
+  if (embeddedWallet.isEmbeddedActive) return "Conta Inapay / Privy";
+  if (isMiniPay) return "MiniPay";
+  if (embeddedWallet.isAuthenticated) return "Wallet existente";
+  return "Wallet existente";
+}
+
+function HistoryTab({
+  wallet,
+  paymentReceipt,
+  registryExplorerUrl,
+}: {
+  wallet: WalletConnectionState;
+  paymentReceipt: PaymentReceiptData | null;
+  registryExplorerUrl: string | null;
+}) {
+  const walletExplorerUrl =
+    wallet.address && !wallet.isDemo
+      ? `${CELOSCAN_ADDRESS_URL}${wallet.address}`
+      : null;
+
   return (
-    <section className="border-2 border-celo-white bg-celo-black">
-      <div className="border-b-2 border-celo-white bg-editorial-lilac px-4 py-3 text-celo-black">
-        <h1 className="text-3xl font-black uppercase leading-none">{title}</h1>
-      </div>
-      <div className="p-4">
-        <p className="font-mono text-[11px] font-bold uppercase leading-relaxed text-warm-gray">
-          {body}
+    <section className="space-y-4" aria-labelledby="history-title">
+      <div className="border-b-2 border-celo-white pb-4">
+        <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
+          Atividades recentes da sua Conta Inapay
         </p>
+        <h1
+          id="history-title"
+          className="mt-2 text-4xl font-black uppercase leading-none text-celo-white"
+        >
+          Historico
+        </h1>
       </div>
+
+      <div className="border-2 border-celo-white bg-celo-black">
+        <div className="border-b-2 border-celo-white bg-editorial-lilac px-4 py-3 text-celo-black">
+          <h2 className="text-2xl font-black uppercase leading-none">
+            Ultimo envio
+          </h2>
+        </div>
+        {paymentReceipt ? (
+          <div className="space-y-3 p-4">
+            <div className="grid grid-cols-[1fr_auto] gap-3">
+              <div>
+                <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+                  Pagamento confirmado
+                </p>
+                <p className="mt-1 text-2xl font-black uppercase leading-none text-celo-white">
+                  {paymentReceipt.amount} {paymentReceipt.tokenSymbol}
+                </p>
+              </div>
+              <span className="border border-celo-green px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-green">
+                local
+              </span>
+            </div>
+            <p className="break-all font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+              Para {shortenAddress(paymentReceipt.recipient)} em{" "}
+              {formatReceiptDate(paymentReceipt.createdAt)}
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <a
+                href={paymentReceipt.paymentExplorerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block border-2 border-celo-yellow px-3 py-3 text-center font-mono text-[10px] font-black uppercase text-celo-yellow transition-colors hover:bg-celo-yellow hover:text-celo-black"
+              >
+                Ver envio
+              </a>
+              {registryExplorerUrl ? (
+                <a
+                  href={registryExplorerUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block border-2 border-editorial-lilac px-3 py-3 text-center font-mono text-[10px] font-black uppercase text-editorial-lilac transition-colors hover:bg-editorial-lilac hover:text-celo-black"
+                >
+                  Ver comprovante
+                </a>
+              ) : (
+                <span className="block border-2 border-celo-white/25 px-3 py-3 text-center font-mono text-[10px] font-black uppercase text-warm-gray">
+                  Comprovante local
+                </span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="p-4">
+            <p className="text-xl font-black uppercase leading-tight text-celo-white">
+              Nenhuma transacao encontrada nesta sessao.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-2">
+        <div className="border border-celo-white/25 bg-celo-black px-3 py-3">
+          <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+            Comprovantes
+          </p>
+          <p className="mt-1 text-sm font-black uppercase leading-tight text-celo-white">
+            Disponiveis apos cada envio confirmado
+          </p>
+        </div>
+        <div className="border border-celo-white/25 bg-celo-black px-3 py-3">
+          <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+            Rede
+          </p>
+          <p className="mt-1 text-sm font-black uppercase leading-tight text-celo-yellow">
+            Celo Mainnet
+          </p>
+        </div>
+      </div>
+
+      <p className="border border-editorial-lilac px-3 py-3 font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+        Por enquanto, o historico mostra apenas atividades locais desta sessao.
+        Em breve, o Inapay podera buscar registros on-chain e comprovantes
+        anteriores.
+      </p>
+
+      {walletExplorerUrl ? (
+        <a
+          href={walletExplorerUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="block border-2 border-celo-white px-4 py-3 text-center text-sm font-black uppercase text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
+        >
+          Ver minha carteira no Celoscan
+        </a>
+      ) : (
+        <span className="block border-2 border-celo-white/25 px-4 py-3 text-center text-sm font-black uppercase text-warm-gray">
+          Celoscan indisponivel no modo demo
+        </span>
+      )}
+    </section>
+  );
+}
+
+function ProfileTab({
+  wallet,
+  embeddedWallet,
+  isMiniPay,
+}: {
+  wallet: WalletConnectionState;
+  embeddedWallet: InapayEmbeddedWalletState;
+  isMiniPay: boolean;
+}) {
+  const [copyLabel, setCopyLabel] = useState("Copiar endereco");
+  const walletExplorerUrl =
+    wallet.address && !wallet.isDemo
+      ? `${CELOSCAN_ADDRESS_URL}${wallet.address}`
+      : null;
+  const connectionMethod = getProfileConnectionMethod({
+    wallet,
+    embeddedWallet,
+    isMiniPay,
+  });
+
+  async function handleCopyAddress() {
+    if (!wallet.address) return;
+
+    try {
+      await navigator.clipboard.writeText(wallet.address);
+      setCopyLabel("Endereco copiado");
+      window.setTimeout(() => setCopyLabel("Copiar endereco"), 1800);
+    } catch {
+      setCopyLabel("Nao foi possivel copiar");
+      window.setTimeout(() => setCopyLabel("Copiar endereco"), 1800);
+    }
+  }
+
+  return (
+    <section className="space-y-4" aria-labelledby="profile-title">
+      <div className="border-b-2 border-celo-white pb-4">
+        <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
+          Conta, seguranca e rede
+        </p>
+        <h1
+          id="profile-title"
+          className="mt-2 text-4xl font-black uppercase leading-none text-celo-white"
+        >
+          Perfil
+        </h1>
+      </div>
+
+      <div className="border-2 border-celo-white bg-celo-black">
+        <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
+          <p className="font-mono text-[10px] font-black uppercase">
+            metodo de conexao
+          </p>
+          <p className="mt-1 text-2xl font-black uppercase leading-none">
+            {connectionMethod}
+          </p>
+        </div>
+        <div className="space-y-3 p-4">
+          <div>
+            <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+              Endereco
+            </p>
+            <p className="mt-1 break-all font-mono text-sm font-black text-celo-green">
+              {wallet.address ?? "Endereco indisponivel"}
+            </p>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => void handleCopyAddress()}
+              disabled={!wallet.address}
+              className="border-2 border-celo-white bg-celo-white px-3 py-3 text-sm font-black uppercase text-celo-black transition-colors hover:bg-celo-black hover:text-celo-white disabled:opacity-50"
+            >
+              {copyLabel}
+            </button>
+            {walletExplorerUrl ? (
+              <a
+                href={walletExplorerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block border-2 border-editorial-lilac px-3 py-3 text-center text-sm font-black uppercase text-editorial-lilac transition-colors hover:bg-editorial-lilac hover:text-celo-black"
+              >
+                Ver no Celoscan
+              </a>
+            ) : (
+              <span className="block border-2 border-celo-white/25 px-3 py-3 text-center text-sm font-black uppercase text-warm-gray">
+                Celoscan indisponivel
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-2">
+        <div className="border border-celo-white/25 bg-celo-black px-3 py-3">
+          <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+            Rede
+          </p>
+          <p className="mt-1 text-sm font-black uppercase leading-tight text-celo-yellow">
+            Celo Mainnet
+          </p>
+        </div>
+        <div className="border border-celo-white/25 bg-celo-black px-3 py-3">
+          <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+            Tokens habilitados
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {WEB3_TOKENS.map((token) => (
+              <span
+                key={token.id}
+                className={[
+                  "border px-2 py-1 font-mono text-[9px] font-black uppercase",
+                  token.available
+                    ? "border-celo-green text-celo-green"
+                    : "border-editorial-lilac text-editorial-lilac",
+                ].join(" ")}
+              >
+                {token.symbol}
+                {!token.available ? " em validacao" : ""}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <p className="border-2 border-celo-yellow px-3 py-3 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-yellow">
+        Nunca compartilhe frases-semente ou chaves privadas. O Inapay nunca
+        pede esses dados.
+      </p>
     </section>
   );
 }
@@ -444,16 +713,18 @@ function HomePageContent({
               ) : null}
 
               {activeTab === "history" ? (
-                <PlaceholderTab
-                  title="Historico em construcao"
-                  body="Em breve voce vera seus pagamentos e comprovantes aqui."
+                <HistoryTab
+                  wallet={wallet}
+                  paymentReceipt={paymentReceipt}
+                  registryExplorerUrl={registryExplorerUrl}
                 />
               ) : null}
 
               {activeTab === "profile" ? (
-                <PlaceholderTab
-                  title="Perfil em construcao"
-                  body="Conta, seguranca e configuracoes ficarao aqui."
+                <ProfileTab
+                  wallet={wallet}
+                  embeddedWallet={embeddedWallet}
+                  isMiniPay={isMiniPay}
                 />
               ) : null}
             </div>
