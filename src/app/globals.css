@@ -6,8 +6,8 @@
   --brand-amber: #f5a623;
   --brand-copper: #d4830a;
   --brand-cream: #f7f4ef;
-  --celo-yellow: var(--brand-fire);
-  --celo-green: var(--brand-amber);
+  --celo-yellow: var(--brand-amber);
+  --celo-green: var(--brand-fire);
   --celo-black: var(--brand-black);
   --celo-white: var(--brand-cream);
   --editorial-lilac: var(--brand-copper);
@@ -48,7 +48,7 @@ html {
 
 body {
   background:
-    linear-gradient(180deg, rgb(255 107 0 / 0.08), transparent 220px),
+    linear-gradient(180deg, rgb(212 131 10 / 0.1), transparent 220px),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
@@ -57,14 +57,14 @@ body {
 }
 
 ::selection {
-  background: var(--celo-yellow);
+  background: var(--brand-amber);
   color: var(--celo-black);
 }
 
 .editorial-texture {
   background-image:
     radial-gradient(circle at 1px 1px, rgb(247 244 239 / 0.13) 1px, transparent 0),
-    linear-gradient(rgb(255 107 0 / 0.05) 1px, transparent 1px),
+    linear-gradient(rgb(245 166 35 / 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgb(245 166 35 / 0.05) 1px, transparent 1px);
   background-size: 18px 18px, 72px 72px, 72px 72px;
 }
@@ -72,7 +72,7 @@ body {
 .editorial-noise {
   background-image:
     repeating-linear-gradient(0deg, rgb(247 244 239 / 0.035) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(90deg, rgb(255 107 0 / 0.03) 0 1px, transparent 1px 9px);
+    repeating-linear-gradient(90deg, rgb(212 131 10 / 0.032) 0 1px, transparent 1px 9px);
   mix-blend-mode: screen;
 }
 

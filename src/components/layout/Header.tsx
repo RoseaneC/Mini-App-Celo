@@ -1,3 +1,5 @@
+import { LogoInapay } from "@/components/brand/LogoInapay";
+
 type HeaderProps = {
   isConnected: boolean;
   address: string | null;
@@ -33,10 +35,7 @@ export function Header({
             Celo Mainnet
           </span>
           <div className="h-5 w-px bg-celo-white/35" aria-hidden />
-          <p className="truncate text-lg uppercase leading-none text-celo-white">
-            <span className="font-black">{"IN\u00c1"}</span>
-            <span className="font-semibold text-celo-yellow">PAY</span>
-          </p>
+          <LogoInapay className="truncate text-lg" compact />
         </div>
 
         {isConnected && address ? (
@@ -56,7 +55,7 @@ export function Header({
             <button
               type="button"
               onClick={onDisconnect}
-              className="border-2 border-celo-white bg-celo-black px-3 py-2 text-xs font-black uppercase text-celo-white transition-colors hover:border-celo-yellow hover:bg-celo-yellow hover:text-celo-black"
+              className="border-2 border-celo-white bg-celo-black px-3 py-2 text-xs font-black uppercase text-celo-white transition-colors hover:border-brand-fire hover:bg-brand-fire hover:text-celo-black"
             >
               Sair
             </button>
@@ -66,7 +65,7 @@ export function Header({
             type="button"
             onClick={onConnect}
             disabled={isConnecting || connectDisabled}
-            className="my-2 ml-3 shrink-0 border-2 border-celo-yellow bg-celo-yellow px-4 py-2 text-xs font-black uppercase text-celo-black shadow-[4px_4px_0_var(--brand-copper)] transition-colors hover:bg-celo-black hover:text-celo-yellow disabled:opacity-50"
+            className="my-2 ml-3 shrink-0 border-2 border-celo-yellow bg-celo-yellow px-4 py-2 text-xs font-black uppercase text-celo-black shadow-[4px_4px_0_var(--brand-copper)] transition-colors hover:border-brand-fire hover:bg-brand-fire hover:text-celo-black disabled:opacity-50"
           >
             {isConnecting ? "..." : "Conectar"}
           </button>

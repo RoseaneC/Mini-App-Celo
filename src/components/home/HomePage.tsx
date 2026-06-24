@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { BrandCardPreview } from "@/components/brand/BrandCardPreview";
+import { LogoInapay } from "@/components/brand/LogoInapay";
 import { AuthEntry } from "@/components/home/AuthEntry";
 import { ReceivePanel } from "@/components/home/ReceivePanel";
 import { Header } from "@/components/layout/Header";
@@ -178,6 +180,7 @@ function DisconnectedLanding({
     <main className="relative mx-auto flex min-h-dvh w-full max-w-[480px] flex-col justify-center px-4 py-8">
       <section className="space-y-4" aria-labelledby="auth-title">
         <div className="border-b-2 border-celo-yellow pb-4">
+          <LogoInapay className="mb-5 text-2xl" />
           <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
             Conta Inapay
           </p>
@@ -190,8 +193,9 @@ function DisconnectedLanding({
           </h1>
         </div>
 
-        <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
-          <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
+        <div className="border-2 border-celo-yellow bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
+          <div className="border-b-2 border-celo-yellow bg-celo-black px-4 py-3 text-celo-white">
+            <div className="mb-3 h-1 w-16 bg-celo-yellow" aria-hidden />
             <h2 className="text-3xl font-black uppercase leading-none">
               Conecte sua conta
             </h2>
@@ -257,9 +261,11 @@ function HomeTab({
 
   return (
     <section className="space-y-3" aria-labelledby="home-title">
-      <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
-        <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
-          <p className="font-mono text-[10px] font-black uppercase text-celo-black/70">
+      <div className="border-2 border-celo-yellow bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
+        <div className="border-b-2 border-celo-yellow bg-celo-black px-4 py-3 text-celo-white">
+          <div className="mb-3 h-1 w-16 bg-celo-yellow" aria-hidden />
+          <LogoInapay className="mb-4 text-xl" compact />
+          <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
             Conta Inapay
           </p>
           <h1
@@ -268,7 +274,7 @@ function HomeTab({
           >
             Conta Inapay
           </h1>
-          <p className="mt-1 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-black/70">
+          <p className="mt-1 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-yellow">
             Celo Mainnet
           </p>
         </div>
@@ -613,8 +619,9 @@ function ProfileTab({
         </h1>
       </div>
 
-      <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
-        <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
+      <div className="border-2 border-celo-yellow bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
+        <div className="border-b-2 border-celo-yellow bg-celo-black px-4 py-3 text-celo-white">
+          <div className="mb-3 h-1 w-16 bg-celo-yellow" aria-hidden />
           <p className="font-mono text-[10px] font-black uppercase">
             metodo de conexao
           </p>
@@ -689,6 +696,8 @@ function ProfileTab({
           </div>
         </div>
       </div>
+
+      <BrandCardPreview />
 
       <p className="border-2 border-celo-yellow px-3 py-3 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-yellow">
         Nunca compartilhe frases-semente ou chaves privadas. O Inapay nunca
