@@ -25,6 +25,9 @@ export function BrandCardPreview() {
 
           <div className="space-y-2">
             <div className="h-7 w-9 border border-celo-yellow/50 bg-celo-black/60 shadow-[3px_3px_0_var(--brand-copper)]" />
+            <p className="font-mono text-[11px] font-black uppercase tracking-[0.18em] text-celo-white/45">
+              {"\u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 \u2022\u2022\u2022\u2022 ROADMAP"}
+            </p>
             <p
               id="brand-card-preview-title"
               className="max-w-[12rem] text-2xl font-black uppercase leading-none text-celo-white"
@@ -35,7 +38,7 @@ export function BrandCardPreview() {
 
           <div className="flex items-end justify-between gap-4">
             <p className="font-mono text-[9px] font-bold uppercase leading-relaxed text-celo-white/60">
-              Visual de marca
+              Celo Mainnet
               <span className="block text-celo-yellow">sem pagamento ativo</span>
             </p>
             <FlameIcon className="h-9 w-7" title="Chama Inapay" />

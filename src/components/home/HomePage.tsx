@@ -21,7 +21,7 @@ import type { WalletConnectionState } from "@/types/transfer";
 
 const privyEnabled = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
 
-type AppTab = "home" | "send" | "receive" | "history" | "profile";
+type AppTab = "home" | "send" | "receive" | "history" | "profile" | "card";
 
 type LocalTransactionHistoryItem = {
   id: `0x${string}`;
@@ -42,11 +42,12 @@ const LOCAL_HISTORY_STORAGE_KEY = "inapay.localTransactionHistory.v1";
 const LOCAL_HISTORY_UPDATED_EVENT = "inapay-local-history-updated";
 
 const tabs: { id: AppTab; label: string }[] = [
-  { id: "home", label: "Inicio" },
+  { id: "home", label: "Início" },
   { id: "send", label: "Enviar" },
   { id: "receive", label: "Receber" },
-  { id: "history", label: "Historico" },
+  { id: "history", label: "Histórico" },
   { id: "profile", label: "Perfil" },
+  { id: "card", label: "Cartão" },
 ];
 
 const shortcuts: { id: Exclude<AppTab, "home">; label: string }[] = [
@@ -697,11 +698,65 @@ function ProfileTab({
         </div>
       </div>
 
-      <BrandCardPreview />
-
       <p className="border-2 border-celo-yellow px-3 py-3 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-yellow">
         Nunca compartilhe frases-semente ou chaves privadas. O Inapay nunca
         pede esses dados.
+      </p>
+    </section>
+  );
+}
+
+const cardRoadmapItems: { title: string; status: "Em estudo" | "Fase futura" }[] = [
+  { title: "Cartao virtual", status: "Em estudo" },
+  { title: "Bloqueio/desbloqueio", status: "Fase futura" },
+  { title: "Limites de uso", status: "Fase futura" },
+  { title: "Tokenizacao", status: "Em estudo" },
+  { title: "NFC / aproximacao", status: "Fase futura" },
+  { title: "Apple Pay / Google Pay", status: "Fase futura" },
+  { title: "Provedor regulado", status: "Em estudo" },
+];
+
+function CardTab() {
+  return (
+    <section className="space-y-4" aria-labelledby="card-title">
+      <div className="border-b-2 border-celo-yellow pb-4">
+        <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
+          Cartao digital em estudo
+        </p>
+        <h1
+          id="card-title"
+          className="mt-2 text-4xl font-black uppercase leading-none text-celo-white"
+        >
+          Cartao Inapay
+        </h1>
+        <p className="mt-3 font-mono text-[10px] font-bold uppercase leading-relaxed text-warm-gray">
+          Esta e uma previa visual da experiencia de cartao. A emissao real
+          depende de parceiros regulados, tokenizacao, compliance e integracao
+          futura.
+        </p>
+      </div>
+
+      <BrandCardPreview />
+
+      <div className="grid grid-cols-2 gap-2">
+        {cardRoadmapItems.map((item) => (
+          <article
+            key={item.title}
+            className="min-h-24 border border-celo-white/25 bg-celo-black px-3 py-3"
+          >
+            <p className="text-sm font-black uppercase leading-tight text-celo-white">
+              {item.title}
+            </p>
+            <p className="mt-3 inline-block border border-celo-yellow/60 px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-yellow">
+              {item.status}
+            </p>
+          </article>
+        ))}
+      </div>
+
+      <p className="border-2 border-celo-yellow px-3 py-3 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-yellow">
+        O Cartao Inapay ainda nao e um produto financeiro ativo. Esta tela e
+        apenas uma previa visual de roadmap.
       </p>
     </section>
   );
@@ -861,7 +916,7 @@ function HomePageContent({
               className="sticky top-[57px] z-10 -mx-4 border-b-2 border-celo-yellow bg-celo-black/95 px-4 pb-3 pt-2 backdrop-blur"
               aria-label="Navegacao Inapay"
             >
-              <div className="grid grid-cols-5 border-2 border-celo-white">
+              <div className="scrollbar-none flex overflow-x-auto border-2 border-celo-white">
                 {tabs.map((tab) => {
                   const isActive = activeTab === tab.id;
 
@@ -872,7 +927,7 @@ function HomePageContent({
                       aria-current={isActive ? "page" : undefined}
                       onClick={() => setActiveTab(tab.id)}
                       className={[
-                        "min-h-12 border-r-2 border-celo-white px-1 py-2 text-[10px] font-black uppercase leading-tight transition-colors last:border-r-0",
+                        "min-h-12 min-w-[76px] flex-1 border-r-2 border-celo-white px-2 py-2 text-[10px] font-black uppercase leading-tight transition-colors last:border-r-0",
                         isActive
                           ? "bg-celo-yellow text-celo-black"
                           : "bg-celo-black text-celo-white hover:bg-celo-yellow hover:text-celo-black",
@@ -952,6 +1007,8 @@ function HomePageContent({
                   isMiniPay={isMiniPay}
                 />
               ) : null}
+
+              {activeTab === "card" ? <CardTab /> : null}
             </div>
 
             <footer className="grid grid-cols-[1fr_auto] items-end gap-4 border-t border-celo-white/20 py-5 font-mono text-[10px] font-bold uppercase text-warm-gray">
