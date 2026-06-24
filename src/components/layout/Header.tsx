@@ -26,15 +26,16 @@ export function Header({
   connectDisabled = false,
 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-20 border-b-2 border-celo-white bg-celo-black">
+    <header className="sticky top-0 z-20 border-b-2 border-celo-white bg-celo-black/95 backdrop-blur">
       <div className="mx-auto grid max-w-[480px] grid-cols-[1fr_auto] items-stretch px-4">
         <div className="flex min-w-0 items-center gap-3 border-r-2 border-celo-white py-3 pr-3">
           <span className="font-mono text-[10px] font-bold uppercase text-celo-yellow">
             Celo Mainnet
           </span>
           <div className="h-5 w-px bg-celo-white/35" aria-hidden />
-          <p className="truncate text-lg font-black uppercase leading-none text-celo-white">
-            {"In\u00e1Pay"}
+          <p className="truncate text-lg uppercase leading-none text-celo-white">
+            <span className="font-black">{"IN\u00c1"}</span>
+            <span className="font-semibold text-celo-yellow">PAY</span>
           </p>
         </div>
 
@@ -55,7 +56,7 @@ export function Header({
             <button
               type="button"
               onClick={onDisconnect}
-              className="border-2 border-celo-white bg-celo-black px-3 py-2 text-xs font-black uppercase text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
+              className="border-2 border-celo-white bg-celo-black px-3 py-2 text-xs font-black uppercase text-celo-white transition-colors hover:border-celo-yellow hover:bg-celo-yellow hover:text-celo-black"
             >
               Sair
             </button>
@@ -65,7 +66,7 @@ export function Header({
             type="button"
             onClick={onConnect}
             disabled={isConnecting || connectDisabled}
-            className="my-2 ml-3 shrink-0 border-2 border-celo-yellow bg-celo-yellow px-4 py-2 text-xs font-black uppercase text-celo-black transition-colors hover:bg-celo-black hover:text-celo-yellow disabled:opacity-50"
+            className="my-2 ml-3 shrink-0 border-2 border-celo-yellow bg-celo-yellow px-4 py-2 text-xs font-black uppercase text-celo-black shadow-[4px_4px_0_var(--brand-copper)] transition-colors hover:bg-celo-black hover:text-celo-yellow disabled:opacity-50"
           >
             {isConnecting ? "..." : "Conectar"}
           </button>

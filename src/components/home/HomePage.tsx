@@ -177,7 +177,7 @@ function DisconnectedLanding({
   return (
     <main className="relative mx-auto flex min-h-dvh w-full max-w-[480px] flex-col justify-center px-4 py-8">
       <section className="space-y-4" aria-labelledby="auth-title">
-        <div className="border-b-2 border-celo-white pb-4">
+        <div className="border-b-2 border-celo-yellow pb-4">
           <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
             Conta Inapay
           </p>
@@ -190,7 +190,7 @@ function DisconnectedLanding({
           </h1>
         </div>
 
-        <div className="border-2 border-celo-white bg-celo-black">
+        <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
           <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
             <h2 className="text-3xl font-black uppercase leading-none">
               Conecte sua conta
@@ -257,7 +257,7 @@ function HomeTab({
 
   return (
     <section className="space-y-3" aria-labelledby="home-title">
-      <div className="border-2 border-celo-white bg-celo-black">
+      <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
         <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
           <p className="font-mono text-[10px] font-black uppercase text-celo-black/70">
             Conta Inapay
@@ -313,7 +313,7 @@ function HomeTab({
             key={shortcut.id}
             type="button"
             onClick={() => onNavigate(shortcut.id)}
-            className="min-h-16 border-2 border-celo-white bg-celo-black px-3 py-3 text-left text-base font-black uppercase leading-none text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
+            className="min-h-16 border-2 border-celo-white bg-celo-black px-3 py-3 text-left text-base font-black uppercase leading-none text-celo-white transition-colors hover:border-celo-yellow hover:bg-celo-yellow hover:text-celo-black"
           >
             {shortcut.label}
           </button>
@@ -407,7 +407,7 @@ function HistoryTab({
 
   return (
     <section className="space-y-4" aria-labelledby="history-title">
-      <div className="border-b-2 border-celo-white pb-4">
+      <div className="border-b-2 border-celo-yellow pb-4">
         <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
           Atividades recentes da sua Conta Inapay
         </p>
@@ -419,7 +419,7 @@ function HistoryTab({
         </h1>
       </div>
 
-      <div className="border-2 border-celo-white bg-celo-black">
+      <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
         <div className="border-b-2 border-celo-white bg-editorial-lilac px-4 py-3 text-celo-black">
           <h2 className="text-2xl font-black uppercase leading-none">
             Ultimo envio
@@ -601,7 +601,7 @@ function ProfileTab({
 
   return (
     <section className="space-y-4" aria-labelledby="profile-title">
-      <div className="border-b-2 border-celo-white pb-4">
+      <div className="border-b-2 border-celo-yellow pb-4">
         <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
           Conta, seguranca e rede
         </p>
@@ -613,7 +613,7 @@ function ProfileTab({
         </h1>
       </div>
 
-      <div className="border-2 border-celo-white bg-celo-black">
+      <div className="border-2 border-celo-white bg-celo-black shadow-[6px_6px_0_var(--brand-copper)]">
         <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
           <p className="font-mono text-[10px] font-black uppercase">
             metodo de conexao
@@ -849,7 +849,7 @@ function HomePageContent({
 
           <main className="relative mx-auto flex w-full max-w-[480px] flex-col px-4 pb-8 pt-4">
             <nav
-              className="sticky top-[57px] z-10 -mx-4 border-b-2 border-celo-white bg-celo-black/95 px-4 pb-3 pt-2 backdrop-blur"
+              className="sticky top-[57px] z-10 -mx-4 border-b-2 border-celo-yellow bg-celo-black/95 px-4 pb-3 pt-2 backdrop-blur"
               aria-label="Navegacao Inapay"
             >
               <div className="grid grid-cols-5 border-2 border-celo-white">
@@ -866,7 +866,7 @@ function HomePageContent({
                         "min-h-12 border-r-2 border-celo-white px-1 py-2 text-[10px] font-black uppercase leading-tight transition-colors last:border-r-0",
                         isActive
                           ? "bg-celo-yellow text-celo-black"
-                          : "bg-celo-black text-celo-white hover:bg-celo-white hover:text-celo-black",
+                          : "bg-celo-black text-celo-white hover:bg-celo-yellow hover:text-celo-black",
                       ].join(" ")}
                     >
                       {tab.label}
