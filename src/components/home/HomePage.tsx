@@ -235,12 +235,14 @@ function HomeTab({
   balances,
   embeddedWallet,
   isMiniPay,
+  localHistory,
   onNavigate,
 }: {
   wallet: WalletConnectionState;
   balances: TokenBalance[];
   embeddedWallet: InapayEmbeddedWalletState;
   isMiniPay: boolean;
+  localHistory: LocalTransactionHistoryItem[];
   onNavigate: (tab: AppTab) => void;
 }) {
   const connectionLabel = getConnectionLabel({
@@ -251,33 +253,27 @@ function HomeTab({
   const addressLabel = wallet.isDemo
     ? "sem wallet real"
     : shortenAddress(wallet.address);
+  const latestActivity = localHistory[0] ?? null;
 
   return (
-    <section className="space-y-4" aria-labelledby="home-title">
-      <div className="border-b-2 border-celo-white pb-4">
-        <p className="font-mono text-[11px] font-bold uppercase text-warm-gray">
-          Conta Inapay
-        </p>
-        <h1
-          id="home-title"
-          className="mt-2 text-5xl font-black uppercase leading-[0.88] text-celo-white"
-        >
-          Carteira
-          <span className="block text-celo-yellow">Digital</span>
-        </h1>
-      </div>
-
+    <section className="space-y-3" aria-labelledby="home-title">
       <div className="border-2 border-celo-white bg-celo-black">
         <div className="border-b-2 border-celo-white bg-celo-yellow px-4 py-3 text-celo-black">
-          <p className="font-mono text-[10px] font-black uppercase">
-            saldo resumido
+          <p className="font-mono text-[10px] font-black uppercase text-celo-black/70">
+            Conta Inapay
           </p>
-          <p className="mt-1 break-words text-3xl font-black uppercase leading-none">
-            {getSummaryBalance(wallet, balances)}
+          <h1
+            id="home-title"
+            className="mt-1 text-3xl font-black uppercase leading-none"
+          >
+            Conta Inapay
+          </h1>
+          <p className="mt-1 font-mono text-[10px] font-black uppercase leading-relaxed text-celo-black/70">
+            Celo Mainnet
           </p>
         </div>
 
-        <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-4">
+        <div className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3">
           <div>
             <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
               {connectionLabel}
@@ -286,9 +282,28 @@ function HomeTab({
               {addressLabel}
             </p>
           </div>
-          <span className="border border-celo-white px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-white">
-            mainnet
-          </span>
+          <div className="text-right">
+            <span className="block border border-celo-green px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-green">
+              Conta ativa
+            </span>
+            <span className="mt-1 block font-mono text-[9px] font-black uppercase text-celo-yellow">
+              Celo Mainnet
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-2 border-celo-white bg-celo-black">
+        <div className="px-4 py-3">
+          <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+            saldo resumido
+          </p>
+          <p className="mt-1 break-words text-2xl font-black uppercase leading-none text-celo-white">
+            {getSummaryBalance(wallet, balances)}
+          </p>
+          <p className="mt-2 font-mono text-[9px] font-bold uppercase leading-relaxed text-warm-gray">
+            CELO e USDC habilitados • USDT em validacao
+          </p>
         </div>
       </div>
 
@@ -298,12 +313,54 @@ function HomeTab({
             key={shortcut.id}
             type="button"
             onClick={() => onNavigate(shortcut.id)}
-            className="min-h-20 border-2 border-celo-white bg-celo-black px-3 py-3 text-left text-lg font-black uppercase leading-none text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
+            className="min-h-16 border-2 border-celo-white bg-celo-black px-3 py-3 text-left text-base font-black uppercase leading-none text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
           >
             {shortcut.label}
           </button>
         ))}
       </div>
+
+      <div className="border-2 border-celo-white bg-celo-black">
+        <div className="border-b-2 border-celo-white bg-editorial-lilac px-4 py-2 text-celo-black">
+          <h2 className="text-xl font-black uppercase leading-none">
+            Ultima atividade
+          </h2>
+        </div>
+        {latestActivity ? (
+          <div className="grid grid-cols-[1fr_auto] items-center gap-3 p-3">
+            <div className="grid grid-cols-[1fr_auto] gap-3">
+              <div>
+                <p className="font-mono text-[10px] font-black uppercase text-warm-gray">
+                  Ultimo envio
+                </p>
+                <p className="mt-1 text-lg font-black uppercase leading-none text-celo-white">
+                  {latestActivity.amount} {latestActivity.tokenSymbol}
+                </p>
+              </div>
+              <span className="self-start border border-celo-green px-2 py-1 font-mono text-[9px] font-black uppercase text-celo-green">
+                {latestActivity.status}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate("history")}
+              className="border-2 border-celo-white px-3 py-2 text-xs font-black uppercase text-celo-white transition-colors hover:bg-celo-white hover:text-celo-black"
+            >
+              Ver historico
+            </button>
+          </div>
+        ) : (
+          <div className="p-3">
+            <p className="text-sm font-black uppercase leading-tight text-celo-white">
+              Nenhuma atividade nesta sessao.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <p className="border border-celo-yellow/70 px-3 py-2 font-mono text-[9px] font-bold uppercase leading-relaxed text-celo-yellow">
+        Valor real: revise moeda, valor e destino antes de confirmar.
+      </p>
     </section>
   );
 }
@@ -826,6 +883,7 @@ function HomePageContent({
                   balances={balances}
                   embeddedWallet={embeddedWallet}
                   isMiniPay={isMiniPay}
+                  localHistory={localHistory}
                   onNavigate={setActiveTab}
                 />
               ) : null}
