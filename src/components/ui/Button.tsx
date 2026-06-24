@@ -10,13 +10,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    "border-2 border-celo-yellow bg-celo-yellow text-celo-black hover:bg-celo-black hover:text-celo-yellow focus-visible:ring-editorial-lilac",
+    "border-2 border-celo-yellow bg-celo-yellow text-celo-black shadow-[4px_4px_0_var(--brand-copper)] hover:bg-celo-black hover:text-celo-yellow focus-visible:ring-editorial-lilac",
   secondary:
-    "border-2 border-celo-white bg-celo-white text-celo-black hover:bg-celo-black hover:text-celo-white focus-visible:ring-celo-yellow",
+    "border-2 border-celo-white bg-celo-white text-celo-black hover:border-celo-yellow hover:bg-celo-black hover:text-celo-yellow focus-visible:ring-celo-yellow",
   outline:
     "border-2 border-celo-white bg-transparent text-celo-white hover:border-celo-yellow hover:bg-celo-yellow hover:text-celo-black",
   ghost:
-    "border-2 border-transparent bg-transparent text-celo-white hover:border-celo-white hover:bg-celo-white hover:text-celo-black",
+    "border-2 border-transparent bg-transparent text-celo-white hover:border-celo-yellow hover:bg-celo-yellow hover:text-celo-black",
 };
 
 export function Button({
